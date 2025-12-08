@@ -18,7 +18,7 @@ const {
 
 // SSL configuration, mirroring Mediart backend approach
 const DB_SSL = process.env.DB_SSL === '1' || process.env.DB_SSL === 'true';
-let DB_SSL_CA = process.env.DB_SSL_CA; // optional: CA content from env
+let DB_SSL_CA = process.env.DB_SSL_CA || process.env.POSTGRES_CA_CERT; // optional: CA content from env (supports alias)
 let DB_SSL_CA_PATH = process.env.DB_SSL_CA_PATH; // optional: path to CA file
 
 // If in production and no explicit CA provided, try default project cert path (like Mediart's server/ca.crt)
@@ -50,11 +50,13 @@ const options = {
 
 if (DB_SSL) {
   // If CA is available, use it; otherwise rely on system CAs but keep strict validation
+  // Normalize CA to array to satisfy pg expectations in some environments
+  const caOpt = DB_SSL_CA ? (Array.isArray(DB_SSL_CA) ? DB_SSL_CA : [DB_SSL_CA]) : undefined;
   options.dialectOptions = {
     ssl: {
       require: true,
-      rejectUnauthorized: true,
-      ca: DB_SSL_CA ? DB_SSL_CA : undefined,
+      rejectUnauthorized: !!caOpt,
+      ca: caOpt,
     }
   };
 }
