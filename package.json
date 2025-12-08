@@ -22,7 +22,8 @@
     "joi": "^17.12.3",
     "csv-stringify": "^6.5.0",
     "swagger-ui-express": "^5.0.0",
-    "yaml": "^2.6.0"
+    "yaml": "^2.6.0",
+    "cors": "^2.8.5"
   },
   "devDependencies": {
     "nodemon": "^3.0.1",

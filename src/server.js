@@ -3,11 +3,27 @@ import dotenv from 'dotenv';
 import routes from './routes/index.js';
 import { initSequelize } from './config/sequelize.js';
 import { mountSwagger } from './swagger/swagger.js';
+import cors from 'cors';
+import env from './config/config.js';
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+
+// CORS based on whitelist from env
+const whitelist = env.corsWhitelist;
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || whitelist.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
+app.use(cors(corsOptions));
 
 // Basic health check
 app.get('/health', (req, res) => res.json({ ok: true }));

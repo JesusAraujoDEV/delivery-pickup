@@ -20,6 +20,10 @@ function resolveCaFromEnv() {
 export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
   port: Number(process.env.PORT || 3000),
+  corsWhitelist: (process.env.CORS_WHITELIST || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean),
 
   // Database
   db: {
