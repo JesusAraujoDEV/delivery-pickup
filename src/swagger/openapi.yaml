@@ -185,7 +185,7 @@ components:
           type: string
     CreateOrderInput:
       type: object
-      required: [service_type, customer, items]
+      required: [service_type, customer, items, shipping_cost]
       properties:
         service_type:
           type: string

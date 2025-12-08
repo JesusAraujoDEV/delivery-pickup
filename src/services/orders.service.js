@@ -1,4 +1,5 @@
 import { getModels } from '../models/index.js';
+import { randomUUID } from 'crypto';
 
 const STATUS_FLOW = ['PENDING_REVIEW', 'IN_KITCHEN', 'READY_FOR_DISPATCH', 'EN_ROUTE', 'DELIVERED'];
 
@@ -20,7 +21,9 @@ async function createOrder(payload) {
 
   const readable_id = generateReadableId();
 
+  const noteId = randomUUID();
   const note = await Notes.create({
+    note_id: noteId,
     readable_id,
     order_source_id: null,
     customer_name: payload.customer.name,
@@ -35,14 +38,16 @@ async function createOrder(payload) {
   });
 
   const itemsToCreate = payload.items.map((it) => ({
+    item_id: randomUUID(),
     note_id: note.note_id,
     product_name: it.product_name,
     quantity: it.quantity,
     unit_price: it.unit_price,
+    subtotal: (Number(it.unit_price) * Number(it.quantity)).toFixed(2),
   }));
   await NoteItems.bulkCreate(itemsToCreate);
 
-  await Logs.create({ note_id: note.note_id, status_from: null, status_to: 'PENDING_REVIEW' });
+  await Logs.create({ log_id: randomUUID(), note_id: note.note_id, status_from: null, status_to: 'PENDING_REVIEW' });
 
   return { note_id: note.note_id, readable_id, status: note.current_status };
 }
@@ -78,7 +83,7 @@ async function approveOrder(note_id) {
 
   const prev = note.current_status;
   await note.update({ current_status: 'IN_KITCHEN', timestamp_approved: new Date() });
-  await Logs.create({ note_id: note.note_id, status_from: prev, status_to: 'IN_KITCHEN' });
+  await Logs.create({ log_id: randomUUID(), note_id: note.note_id, status_from: prev, status_to: 'IN_KITCHEN' });
 
   // Simulate POST /api/kitchen/v1/queue/inject
   // In future, perform axios/fetch here. For now, just console log.
@@ -94,7 +99,7 @@ async function cancelOrder(note_id, reason) {
 
   const prev = note.current_status;
   await note.update({ current_status: 'CANCELLED' });
-  await Logs.create({ note_id: note.note_id, status_from: prev, status_to: 'CANCELLED', cancellation_reason: reason || null });
+  await Logs.create({ log_id: randomUUID(), note_id: note.note_id, status_from: prev, status_to: 'CANCELLED', cancellation_reason: reason || null });
   return { readable_id: note.readable_id, status: 'CANCELLED' };
 }
 
@@ -105,7 +110,7 @@ async function dispatchOrder(note_id) {
 
   const prev = note.current_status;
   await note.update({ current_status: 'EN_ROUTE', timestamp_dispatched: new Date() });
-  await Logs.create({ note_id: note.note_id, status_from: prev, status_to: 'EN_ROUTE' });
+  await Logs.create({ log_id: randomUUID(), note_id: note.note_id, status_from: prev, status_to: 'EN_ROUTE' });
   return { readable_id: note.readable_id, status: 'EN_ROUTE' };
 }
 
@@ -116,7 +121,7 @@ async function closeOrder(note_id) {
 
   const prev = note.current_status;
   await note.update({ current_status: 'DELIVERED', timestamp_closure: new Date() });
-  await Logs.create({ note_id: note.note_id, status_from: prev, status_to: 'DELIVERED' });
+  await Logs.create({ log_id: randomUUID(), note_id: note.note_id, status_from: prev, status_to: 'DELIVERED' });
   return { readable_id: note.readable_id, status: 'DELIVERED' };
 }
 
@@ -126,7 +131,7 @@ async function webhookKitchenReady(readable_id) {
   if (!note) return null;
   const prev = note.current_status;
   await note.update({ current_status: 'READY_FOR_DISPATCH', timestamp_ready: new Date() });
-  await Logs.create({ note_id: note.note_id, status_from: prev, status_to: 'READY_FOR_DISPATCH' });
+  await Logs.create({ log_id: randomUUID(), note_id: note.note_id, status_from: prev, status_to: 'READY_FOR_DISPATCH' });
   console.log(`[SIM] Notify customer for ${readable_id}: READY_FOR_DISPATCH`);
   return { readable_id: note.readable_id, status: 'READY_FOR_DISPATCH' };
 }
