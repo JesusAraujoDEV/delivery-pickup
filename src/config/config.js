@@ -24,6 +24,7 @@ export const env = {
     .split(',')
     .map(s => s.trim())
     .filter(Boolean),
+  backendUrl: process.env.BACKEND_URL || null,
 
   // Database
   db: {
