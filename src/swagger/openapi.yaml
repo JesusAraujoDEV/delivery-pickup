@@ -1,0 +1,219 @@
+openapi: 3.0.3
+info:
+  title: Delivery & Pickup API
+  version: 1.0.0
+  description: API para catálogo, órdenes, dashboard, webhooks y reportes.
+servers:
+  - url: http://localhost:3000
+    description: Desarrollo
+tags:
+  - name: Catalog
+  - name: Orders
+  - name: Dashboard
+  - name: Webhooks
+  - name: Reports
+paths:
+  /api/dp/v1/catalog:
+    get:
+      tags: [Catalog]
+      summary: Obtener catálogo
+      responses:
+        '200':
+          description: Catálogo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CatalogItem'
+  /api/dp/v1/orders:
+    post:
+      tags: [Orders]
+      summary: Crear orden
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderInput'
+      responses:
+        '201':
+          description: Orden creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+  /api/dp/v1/orders/{readable_id}/status:
+    get:
+      tags: [Orders]
+      summary: Obtener/avanzar estado de orden
+      parameters:
+        - in: path
+          name: readable_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Estado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderStatus'
+  /api/dp/v1/dashboard/orders:
+    get:
+      tags: [Dashboard]
+      summary: Listado agrupado de órdenes
+      responses:
+        '200':
+          description: Dashboard de órdenes
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/dp/v1/orders/{note_id}/approve:
+    post:
+      tags: [Orders]
+      summary: Aprobar orden
+      parameters:
+        - in: path
+          name: note_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Orden aprobada
+  /api/dp/v1/orders/{note_id}/cancel:
+    post:
+      tags: [Orders]
+      summary: Cancelar orden
+      parameters:
+        - in: path
+          name: note_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Orden cancelada
+  /api/dp/v1/orders/{note_id}/dispatch:
+    put:
+      tags: [Orders]
+      summary: Despachar orden
+      parameters:
+        - in: path
+          name: note_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Orden despachada
+  /api/dp/v1/orders/{note_id}/close:
+    put:
+      tags: [Orders]
+      summary: Cerrar orden
+      parameters:
+        - in: path
+          name: note_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Orden cerrada
+  /api/dp/v1/webhooks/kitchen/ready:
+    post:
+      tags: [Webhooks]
+      summary: Webhook cocina lista
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK
+  /api/dp/v1/reports/export:
+    get:
+      tags: [Reports]
+      summary: Exportar reporte CSV
+      responses:
+        '200':
+          description: CSV
+          content:
+            text/csv:
+              schema:
+                type: string
+components:
+  schemas:
+    CatalogItem:
+      type: object
+      properties:
+        product_id:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+    OrderItem:
+      type: object
+      properties:
+        product_id:
+          type: string
+        product_name:
+          type: string
+        quantity:
+          type: integer
+        unit_price:
+          type: number
+    Customer:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        address:
+          type: string
+    CreateOrderInput:
+      type: object
+      required: [service_type, customer, items]
+      properties:
+        service_type:
+          type: string
+          enum: [DELIVERY, PICKUP]
+        customer:
+          $ref: '#/components/schemas/Customer'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        shipping_cost:
+          type: number
+    OrderStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [PENDING_REVIEW, IN_KITCHEN, READY_FOR_DISPATCH, EN_ROUTE, DELIVERED, CANCELLED]
+    Order:
+      type: object
+      properties:
+        note_id:
+          type: string
+        readable_id:
+          type: string
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'

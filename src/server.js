@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import routes from './routes/index.js';
 import { initSequelize } from './config/sequelize.js';
+import { mountSwagger } from './swagger/swagger.js';
 
 dotenv.config();
 
@@ -10,6 +11,9 @@ app.use(express.json());
 
 // Basic health check
 app.get('/health', (req, res) => res.json({ ok: true }));
+
+// Swagger docs (separado de lógica de negocio)
+mountSwagger(app);
 
 // API routes
 app.use('/api/dp/v1', routes);

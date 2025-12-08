@@ -20,7 +20,9 @@
     "pg-hstore": "^2.3.4",
     "dotenv": "^16.4.5",
     "joi": "^17.12.3",
-    "csv-stringify": "^6.5.0"
+    "csv-stringify": "^6.5.0",
+    "swagger-ui-express": "^5.0.0",
+    "yaml": "^2.6.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1",
