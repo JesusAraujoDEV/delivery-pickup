@@ -1,0 +1,98 @@
+import Joi from 'joi';
+import ordersService from '../services/orders.service.js';
+
+const itemSchema = Joi.object({
+  product_id: Joi.string().required(),
+  product_name: Joi.string().required(),
+  quantity: Joi.number().integer().min(1).required(),
+  unit_price: Joi.number().precision(2).required(),
+});
+
+const createOrderSchema = Joi.object({
+  service_type: Joi.string().valid('DELIVERY','PICKUP').required(),
+  customer: Joi.object({
+    name: Joi.string().required(),
+    phone: Joi.string().required(),
+    email: Joi.string().email().optional(),
+    address: Joi.string().allow('', null),
+  }).required(),
+  zone_id: Joi.string().guid({ version: 'uuidv4' }).optional(),
+  items: Joi.array().items(itemSchema).min(1).required(),
+  shipping_cost: Joi.number().precision(2).required(),
+});
+
+async function createOrder(req, res, next) {
+  try {
+    const payload = await createOrderSchema.validateAsync(req.body, { abortEarly: false });
+    const order = await ordersService.createOrder(payload);
+    res.status(201).json(order);
+  } catch (err) {
+    if (err.isJoi) return res.status(400).json({ message: 'Validation error', details: err.details });
+    next(err);
+  }
+}
+
+async function getAndAdvanceStatus(req, res, next) {
+  try {
+    const { readable_id } = req.params;
+    const data = await ordersService.getAndAdvanceStatus(readable_id);
+    if (!data) return res.status(404).json({ message: 'Order not found' });
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function approveOrder(req, res, next) {
+  try {
+    const { note_id } = req.params;
+    const data = await ordersService.approveOrder(note_id);
+    if (!data) return res.status(404).json({ message: 'Order not found' });
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function cancelOrder(req, res, next) {
+  try {
+    const { note_id } = req.params;
+    const { reason } = req.body || {};
+    const data = await ordersService.cancelOrder(note_id, reason);
+    if (!data) return res.status(404).json({ message: 'Order not found' });
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function dispatchOrder(req, res, next) {
+  try {
+    const { note_id } = req.params;
+    const data = await ordersService.dispatchOrder(note_id);
+    if (!data) return res.status(404).json({ message: 'Order not found' });
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function closeOrder(req, res, next) {
+  try {
+    const { note_id } = req.params;
+    const data = await ordersService.closeOrder(note_id);
+    if (!data) return res.status(404).json({ message: 'Order not found' });
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export default {
+  createOrder,
+  getAndAdvanceStatus,
+  approveOrder,
+  cancelOrder,
+  dispatchOrder,
+  closeOrder,
+};

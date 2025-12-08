@@ -1,0 +1,23 @@
+{
+  "name": "delivery-pickup",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "lint": "echo \"No linter configured\""
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "sequelize": "^6.37.1",
+    "pg": "^8.13.1",
+    "pg-hstore": "^2.3.4",
+    "dotenv": "^16.4.5",
+    "joi": "^17.12.3",
+    "csv-stringify": "^6.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
