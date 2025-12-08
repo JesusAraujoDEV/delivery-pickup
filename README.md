@@ -34,6 +34,41 @@ npm run dev
 
 Los modelos reflejan el esquema compartido (dp_notes, dp_note_items, dp_logs, etc.). `sequelize.sync()` crea tablas si no existen (solo para demo). En producción, usa migraciones.
 
+### Conexión a Postgres con SSL (CA) como en Mediart
+
+Este proyecto replica la estrategia del backend de Mediart para conectarse a Postgres usando SSL con certificado de Autoridad (CA):
+
+- Puedes definir una URL de conexión (`DB_URL`) o bien usar los parámetros discretos (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`).
+- Activa SSL con `DB_SSL=true`.
+- Proporciona el certificado CA mediante:
+  - `DB_SSL_CA` con el contenido del certificado, o
+  - `DB_SSL_CA_PATH` con la ruta del archivo.
+- En producción, si no defines `DB_SSL_CA` ni `DB_SSL_CA_PATH`, el proyecto intentará usar `certs/aiven-ca.pem` automáticamente.
+- Las migraciones (`sequelize-cli`) usan `src/db/config.cjs` y respetan `DB_SSL` en cualquier entorno (development/test/production). Si `DB_SSL=1`, se establecerá `dialectOptions.ssl` y se intentará cargar el CA desde `DB_SSL_CA_PATH` o `DB_SSL_CA`.
+
+Ejemplo `.env` (PowerShell):
+
+```powershell
+# Opción 1: URL (similar a Mediart)
+DB_URL="postgres://user:pass@host:port/dbname?sslmode=require"
+DB_SSL=true
+DB_SSL_CA_PATH=certs/aiven-ca.pem
+
+# Opción 2: parámetros sueltos
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=delivery_pickup
+DB_USER=postgres
+DB_PASS=postgres
+DB_SSL=false
+```
+
+Prueba rápida de conexión (usa tus variables reales):
+
+```powershell
+npm run db:test
+```
+
 ## Endpoints clave
 
 - GET `/api/dp/v1/catalog` → Proxy simulado del menú de Cocina (con caché en memoria 60s).

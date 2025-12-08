@@ -6,7 +6,12 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "lint": "echo \"No linter configured\""
+    "lint": "echo \"No linter configured\"",
+    "db:test": "node src/scripts/test-aiven.js",
+    "migrations:run": "sequelize-cli db:migrate --config src/db/config.cjs --migrations-path src/db/migrations",
+    "migrations:revert": "sequelize-cli db:migrate:undo --config src/db/config.cjs --migrations-path src/db/migrations",
+    "migrations:revert:all": "sequelize-cli db:migrate:undo:all --config src/db/config.cjs --migrations-path src/db/migrations",
+    "migrations:generate": "sequelize-cli migration:generate --name"
   },
   "dependencies": {
     "express": "^4.19.2",
@@ -18,6 +23,7 @@
     "csv-stringify": "^6.5.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "sequelize-cli": "^6.6.3"
   }
 }
