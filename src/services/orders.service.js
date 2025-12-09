@@ -69,8 +69,8 @@ async function getAndAdvanceStatus(readable_id) {
     if (nextStatus === 'EN_ROUTE') timestamps.timestamp_dispatched = now;
     if (nextStatus === 'DELIVERED') timestamps.timestamp_closure = now;
 
-    await note.update({ current_status: nextStatus, ...timestamps });
-    await Logs.create({ note_id: note.note_id, status_from: STATUS_FLOW[currentIndex], status_to: nextStatus });
+  await note.update({ current_status: nextStatus, ...timestamps });
+  await Logs.create({ log_id: randomUUID(), note_id: note.note_id, status_from: STATUS_FLOW[currentIndex], status_to: nextStatus });
   }
 
   return { readable_id, status: nextStatus };
