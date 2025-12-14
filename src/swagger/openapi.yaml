@@ -12,6 +12,7 @@ tags:
   - name: Dashboard
   - name: Webhooks
   - name: Reports
+  - name: Thresholds
 paths:
   /api/dp/v1/catalog:
     get:
@@ -150,6 +151,19 @@ paths:
             text/csv:
               schema:
                 type: string
+  /api/dp/v1/thresholds:
+    get:
+      tags: [Thresholds]
+      summary: Listar thresholds
+      responses:
+        '200':
+          description: Lista de umbrales
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Threshold'
 components:
   schemas:
     CatalogItem:
@@ -217,3 +231,15 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/OrderItem'
+    Threshold:
+      type: object
+      properties:
+        threshold_id:
+          type: string
+          format: uuid
+        metric_affected:
+          type: string
+        value_critical:
+          type: integer
+        is_active:
+          type: boolean
