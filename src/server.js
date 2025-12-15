@@ -39,7 +39,7 @@ const PORT = process.env.PORT || 3000;
 async function start() {
   await initSequelize();
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port hola ${PORT}`);
   });
 }
 
