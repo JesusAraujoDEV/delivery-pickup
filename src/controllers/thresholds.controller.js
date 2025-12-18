@@ -1,4 +1,5 @@
 import * as service from '../services/thresholds.service.js';
+import { createThresholdSchema, thresholdIdParamSchema } from '../schemas/thresholds.schemas.js';
 
 export async function list(req, res) {
   try {
@@ -13,6 +14,11 @@ export async function list(req, res) {
 export async function get(req, res) {
   try {
     const { threshold_id } = req.params;
+    // Validate path param
+    const { error: paramError } = thresholdIdParamSchema.validate({ threshold_id });
+    if (paramError) {
+      return res.status(400).json({ message: 'Invalid threshold_id', details: paramError.details });
+    }
     const data = await service.getById(threshold_id);
     if (!data) return res.status(404).json({ message: 'Threshold not found' });
     res.json(data);
@@ -24,11 +30,11 @@ export async function get(req, res) {
 
 export async function create(req, res) {
   try {
-    const { metric_affected, value_critical, is_active } = req.body;
-    if (!metric_affected || typeof value_critical !== 'number') {
-      return res.status(400).json({ message: 'Invalid payload' });
+    // Validate body payload with Joi
+    const { value: payload, error } = createThresholdSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+    if (error) {
+      return res.status(400).json({ message: 'Invalid payload', details: error.details });
     }
-    const payload = { metric_affected, value_critical, is_active };
     const created = await service.create(payload);
     res.status(201).json(created);
   } catch (err) {
