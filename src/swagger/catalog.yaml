@@ -1,0 +1,17 @@
+paths:
+  /api/dp/v1/catalog:
+    get:
+      tags: [Catalog]
+      summary: Obtener catálogo
+      responses:
+        '200':
+          description: Catálogo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CatalogItem'

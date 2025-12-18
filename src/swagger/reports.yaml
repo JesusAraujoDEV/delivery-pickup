@@ -1,0 +1,12 @@
+paths:
+  /api/dp/v1/reports/export:
+    get:
+      tags: [Reports]
+      summary: Exportar reporte CSV
+      responses:
+        '200':
+          description: CSV
+          content:
+            text/csv:
+              schema:
+                type: string
