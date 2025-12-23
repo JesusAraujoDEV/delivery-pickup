@@ -209,10 +209,39 @@ paths:
                     is_active: true
         '400':
           description: Payload inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidPayload:
+                  summary: Ejemplo de payload inválido
+                  value:
+                    message: Validation error
+                    details:
+                      - message: "\"metric_affected\" is required"
         '409':
           description: Conflicto, `metric_affected` ya existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                uniqueConflict:
+                  summary: Ejemplo de conflicto único
+                  value:
+                    message: "metric_affected must be unique"
         '500':
           description: Error interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                internalError:
+                  summary: Ejemplo de error interno
+                  value:
+                    message: Internal Server Error
   /api/dp/v1/thresholds/{threshold_id}:
     get:
       tags: [Thresholds]
@@ -239,6 +268,28 @@ paths:
                     metric_affected: ORDERS_PENDING_MAX
                     value_critical: 100
                     is_active: true
+        '404':
+          description: Threshold no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notFound:
+                  summary: Ejemplo de 404
+                  value:
+                    message: Threshold not found
+        '500':
+          description: Error interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                internalErrorById:
+                  summary: Ejemplo de error interno
+                  value:
+                    message: Internal Server Error
         '404':
           description: Threshold no encontrado
         '500':
