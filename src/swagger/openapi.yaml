@@ -164,6 +164,50 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Threshold'
+    post:
+      tags: [Thresholds]
+      summary: Crear un threshold
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateThresholdInput'
+      responses:
+        '201':
+          description: Threshold creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Threshold'
+        '400':
+          description: Payload inválido
+        '409':
+          description: Conflicto, `metric_affected` ya existe
+        '500':
+          description: Error interno
+  /api/dp/v1/thresholds/{threshold_id}:
+    get:
+      tags: [Thresholds]
+      summary: Obtener un threshold por id
+      parameters:
+        - in: path
+          name: threshold_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Threshold encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Threshold'
+        '404':
+          description: Threshold no encontrado
+        '500':
+          description: Error interno
 components:
   schemas:
     CatalogItem:
@@ -243,3 +287,23 @@ components:
           type: integer
         is_active:
           type: boolean
+    CreateThresholdInput:
+      type: object
+      required: [metric_affected, value_critical]
+      properties:
+        metric_affected:
+          type: string
+          maxLength: 50
+        value_critical:
+          type: integer
+        is_active:
+          type: boolean
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
