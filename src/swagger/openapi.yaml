@@ -164,6 +164,18 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Threshold'
+              examples:
+                thresholdsList:
+                  summary: Ejemplo de lista de thresholds
+                  value:
+                    - threshold_id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                      metric_affected: ORDERS_PENDING_MAX
+                      value_critical: 100
+                      is_active: true
+                    - threshold_id: 4ebbd4e0-f1ac-40f4-87cc-b8b3507369b3
+                      metric_affected: KITCHEN_TIME_MAX_MINUTES
+                      value_critical: 30
+                      is_active: true
     post:
       tags: [Thresholds]
       summary: Crear un threshold
@@ -173,6 +185,13 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateThresholdInput'
+            examples:
+              createThresholdExample:
+                summary: Ejemplo de creación de threshold
+                value:
+                  metric_affected: orders_pending
+                  value_critical: 100
+                  is_active: true
       responses:
         '201':
           description: Threshold creado
@@ -180,6 +199,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Threshold'
+              examples:
+                createdThreshold:
+                  summary: Threshold creado
+                  value:
+                    threshold_id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                    metric_affected: orders_pending
+                    value_critical: 100
+                    is_active: true
         '400':
           description: Payload inválido
         '409':
@@ -204,6 +231,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Threshold'
+              examples:
+                thresholdById:
+                  summary: Ejemplo de threshold por id
+                  value:
+                    threshold_id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                    metric_affected: ORDERS_PENDING_MAX
+                    value_critical: 100
+                    is_active: true
         '404':
           description: Threshold no encontrado
         '500':
