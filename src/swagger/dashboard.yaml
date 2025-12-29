@@ -1,0 +1,15 @@
+tags:
+  - name: Dashboard
+
+paths:
+  /api/dp/v1/dashboard/orders:
+    get:
+      tags: [Dashboard]
+      summary: Listado agrupado de órdenes
+      responses:
+        '200':
+          description: Dashboard de órdenes
+          content:
+            application/json:
+              schema:
+                type: object

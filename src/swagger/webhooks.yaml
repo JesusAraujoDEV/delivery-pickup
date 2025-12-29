@@ -1,0 +1,17 @@
+tags:
+  - name: Webhooks
+
+paths:
+  /api/dp/v1/webhooks/kitchen/ready:
+    post:
+      tags: [Webhooks]
+      summary: Webhook cocina lista
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: OK

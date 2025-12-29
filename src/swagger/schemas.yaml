@@ -1,0 +1,99 @@
+components:
+  schemas:
+    Manager:
+      type: object
+      properties:
+        manager_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        full_name:
+          type: string
+        role:
+          type: string
+        is_active:
+          type: boolean
+
+    CreateManagerInput:
+      type: object
+      required: [user_id, full_name, role]
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        full_name:
+          type: string
+          maxLength: 100
+        role:
+          type: string
+          maxLength: 50
+        is_active:
+          type: boolean
+
+    UpdateManagerInput:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        full_name:
+          type: string
+          maxLength: 100
+        role:
+          type: string
+          maxLength: 50
+        is_active:
+          type: boolean
+
+    Zone:
+      type: object
+      properties:
+        zone_id:
+          type: string
+          format: uuid
+        zone_name:
+          type: string
+        estimated_eta_minutes:
+          type: integer
+        shipping_cost:
+          type: number
+        coverage_data:
+          type: object
+        is_active:
+          type: boolean
+
+    CreateZoneInput:
+      type: object
+      required: [zone_name, estimated_eta_minutes, shipping_cost]
+      properties:
+        zone_id:
+          type: string
+          format: uuid
+        zone_name:
+          type: string
+          maxLength: 100
+        estimated_eta_minutes:
+          type: integer
+        shipping_cost:
+          type: number
+        coverage_data:
+          type: object
+        is_active:
+          type: boolean
+
+    UpdateZoneInput:
+      type: object
+      properties:
+        zone_name:
+          type: string
+          maxLength: 100
+        estimated_eta_minutes:
+          type: integer
+        shipping_cost:
+          type: number
+        coverage_data:
+          type: object
+        is_active:
+          type: boolean

@@ -15,3 +15,15 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/CatalogItem'
+
+  components:
+    schemas:
+      CatalogItem:
+        type: object
+        properties:
+          product_id:
+            type: string
+          name:
+            type: string
+          price:
+            type: number

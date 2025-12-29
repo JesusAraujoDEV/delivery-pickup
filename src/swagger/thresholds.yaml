@@ -54,3 +54,30 @@ paths:
           description: ID inválido
         '404':
           description: Threshold no encontrado
+
+components:
+  schemas:
+    Threshold:
+      type: object
+      properties:
+        threshold_id:
+          type: string
+          format: uuid
+        metric_affected:
+          type: string
+        value_critical:
+          type: integer
+        is_active:
+          type: boolean
+
+    CreateThresholdInput:
+      type: object
+      required: [metric_affected, value_critical]
+      properties:
+        metric_affected:
+          type: string
+          maxLength: 50
+        value_critical:
+          type: integer
+        is_active:
+          type: boolean
