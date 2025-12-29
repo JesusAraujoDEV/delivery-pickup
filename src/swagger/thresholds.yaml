@@ -32,6 +32,51 @@ paths:
           description: Payload inválido
         '409':
           description: metric_affected debe ser único
+
+  /api/dp/v1/thresholds/active:
+    get:
+      tags: [Thresholds]
+      summary: Listar solo thresholds activos
+      responses:
+        '200':
+          description: Lista de umbrales activos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Threshold'
+
+  /api/dp/v1/thresholds/by-metric/{metric_affected}:
+    get:
+      tags: [Thresholds]
+      summary: Obtener threshold por métrica
+      parameters:
+        - in: path
+          name: metric_affected
+          required: true
+          schema:
+            type: string
+            maxLength: 50
+            enum:
+              - ORDERS_PENDING_MAX
+              - KITCHEN_TIME_MAX_MINUTES
+              - DISPATCH_CAPACITY_MAX
+              - DELIVERY_TRAVEL_TIME_MAX_MINUTES
+              - DRIVER_ASSIGNMENT_TIMEOUT_MINUTES
+              - PICKUP_WAIT_TIME_MAX_MINUTES
+              - TOTAL_ORDER_CYCLE_MAX_MINUTES
+      responses:
+        '200':
+          description: Threshold
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Threshold'
+        '400':
+          description: Parámetros inválidos
+        '404':
+          description: Threshold no encontrado
   /api/dp/v1/thresholds/{threshold_id}:
     get:
       tags: [Thresholds]
@@ -46,6 +91,70 @@ paths:
       responses:
         '200':
           description: Threshold
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Threshold'
+        '400':
+          description: ID inválido
+        '404':
+          description: Threshold no encontrado
+
+    delete:
+      tags: [Thresholds]
+      summary: Eliminar threshold
+      parameters:
+        - in: path
+          name: threshold_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Eliminado
+        '400':
+          description: ID inválido
+        '404':
+          description: Threshold no encontrado
+
+  /api/dp/v1/thresholds/{threshold_id}/activate:
+    patch:
+      tags: [Thresholds]
+      summary: Activar threshold
+      parameters:
+        - in: path
+          name: threshold_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Threshold actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Threshold'
+        '400':
+          description: ID inválido
+        '404':
+          description: Threshold no encontrado
+
+  /api/dp/v1/thresholds/{threshold_id}/deactivate:
+    patch:
+      tags: [Thresholds]
+      summary: Desactivar threshold
+      parameters:
+        - in: path
+          name: threshold_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Threshold actualizado
           content:
             application/json:
               schema:
@@ -77,6 +186,14 @@ components:
         metric_affected:
           type: string
           maxLength: 50
+          enum:
+            - ORDERS_PENDING_MAX
+            - KITCHEN_TIME_MAX_MINUTES
+            - DISPATCH_CAPACITY_MAX
+            - DELIVERY_TRAVEL_TIME_MAX_MINUTES
+            - DRIVER_ASSIGNMENT_TIMEOUT_MINUTES
+            - PICKUP_WAIT_TIME_MAX_MINUTES
+            - TOTAL_ORDER_CYCLE_MAX_MINUTES
         value_critical:
           type: integer
         is_active:

@@ -11,6 +11,28 @@ export async function list(req, res) {
   }
 }
 
+export async function listActive(req, res) {
+  try {
+    const data = await service.listActive();
+    res.json(data);
+  } catch (err) {
+    console.error('thresholds.listActive error', err);
+    res.status(500).json({ message: 'Internal error' });
+  }
+}
+
+export async function getByMetric(req, res) {
+  try {
+    const { metric_affected } = req.params;
+    const data = await service.getByMetric(metric_affected);
+    if (!data) return res.status(404).json({ message: 'Threshold not found' });
+    res.json(data);
+  } catch (err) {
+    console.error('thresholds.getByMetric error', err);
+    res.status(500).json({ message: 'Internal error' });
+  }
+}
+
 export async function get(req, res) {
   try {
     const { threshold_id } = req.params;
@@ -24,6 +46,42 @@ export async function get(req, res) {
     res.json(data);
   } catch (err) {
     console.error('thresholds.get error', err);
+    res.status(500).json({ message: 'Internal error' });
+  }
+}
+
+export async function activate(req, res) {
+  try {
+    const { threshold_id } = req.params;
+    const data = await service.setActive(threshold_id, true);
+    if (!data) return res.status(404).json({ message: 'Threshold not found' });
+    res.json(data);
+  } catch (err) {
+    console.error('thresholds.activate error', err);
+    res.status(500).json({ message: 'Internal error' });
+  }
+}
+
+export async function deactivate(req, res) {
+  try {
+    const { threshold_id } = req.params;
+    const data = await service.setActive(threshold_id, false);
+    if (!data) return res.status(404).json({ message: 'Threshold not found' });
+    res.json(data);
+  } catch (err) {
+    console.error('thresholds.deactivate error', err);
+    res.status(500).json({ message: 'Internal error' });
+  }
+}
+
+export async function remove(req, res) {
+  try {
+    const { threshold_id } = req.params;
+    const ok = await service.remove(threshold_id);
+    if (!ok) return res.status(404).json({ message: 'Threshold not found' });
+    res.status(204).send();
+  } catch (err) {
+    console.error('thresholds.remove error', err);
     res.status(500).json({ message: 'Internal error' });
   }
 }
@@ -47,4 +105,4 @@ export async function create(req, res) {
   }
 }
 
-export default { list, get, create };
+export default { list, listActive, getByMetric, get, activate, deactivate, remove, create };

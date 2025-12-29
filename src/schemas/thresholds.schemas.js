@@ -1,7 +1,10 @@
 import Joi from 'joi';
+import { VALID_METRICS } from '../utils/constants.js';
 
 export const createThresholdSchema = Joi.object({
-  metric_affected: Joi.string().trim().min(1).max(50).required(),
+  metric_affected: Joi.string()
+    .valid(...VALID_METRICS)
+    .required(),
   value_critical: Joi.number().integer().required(),
   is_active: Joi.boolean().optional(),
 });
