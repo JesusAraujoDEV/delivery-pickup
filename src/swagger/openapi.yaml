@@ -13,6 +13,7 @@ tags:
   - name: Webhooks
   - name: Reports
   - name: Thresholds
+  - name: Managers
 paths:
   /api/dp/v1/catalog:
     get:
@@ -206,6 +207,57 @@ paths:
           description: ID inválido
         '404':
           description: Threshold no encontrado
+  /api/dp/v1/managers:
+    get:
+      tags: [Managers]
+      summary: Listar managers
+      responses:
+        '200':
+          description: Lista de managers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Manager'
+    post:
+      tags: [Managers]
+      summary: Crear manager
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateManagerInput'
+      responses:
+        '201':
+          description: Manager creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Manager'
+        '409':
+          description: user_id debe ser único
+  /api/dp/v1/managers/{manager_id}:
+    get:
+      tags: [Managers]
+      summary: Obtener manager por id
+      parameters:
+        - in: path
+          name: manager_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Manager
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Manager'
+        '404':
+          description: Manager no encontrado
 components:
   schemas:
     CatalogItem:
@@ -294,5 +346,37 @@ components:
           maxLength: 50
         value_critical:
           type: integer
+        is_active:
+          type: boolean
+
+    Manager:
+      type: object
+      properties:
+        manager_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        full_name:
+          type: string
+        role:
+          type: string
+        is_active:
+          type: boolean
+
+    CreateManagerInput:
+      type: object
+      required: [user_id, full_name, role]
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        full_name:
+          type: string
+          maxLength: 100
+        role:
+          type: string
+          maxLength: 50
         is_active:
           type: boolean

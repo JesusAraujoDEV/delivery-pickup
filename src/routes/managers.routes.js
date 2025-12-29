@@ -3,6 +3,9 @@ import * as controller from '../controllers/managers.controller.js';
 
 const router = Router();
 
+router.post('/', controller.create);
+router.get('/', controller.list);
+router.get('/:manager_id', controller.getById);
 router.get('/by-user/:user_id', controller.getByUser);
 router.put('/:manager_id', controller.update);
 router.patch('/:manager_id/activate', controller.activate);

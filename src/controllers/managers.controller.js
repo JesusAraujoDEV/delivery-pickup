@@ -1,5 +1,35 @@
 import * as managersService from '../services/managers.service.js';
 
+export async function create(req, res, next) {
+  try {
+    const payload = req.body;
+    const created = await managersService.create(payload);
+    res.status(201).json(created);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function list(req, res, next) {
+  try {
+    const items = await managersService.list();
+    res.json(items);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getById(req, res, next) {
+  try {
+    const { manager_id } = req.params;
+    const manager = await managersService.getById(manager_id);
+    if (!manager) return res.status(404).json({ message: 'Manager not found' });
+    res.json(manager);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function getByUser(req, res, next) {
   try {
     const { user_id } = req.params;
@@ -56,4 +86,4 @@ export async function remove(req, res, next) {
   }
 }
 
-export default { getByUser, update, activate, deactivate, remove };
+export default { create, list, getById, getByUser, update, activate, deactivate, remove };
