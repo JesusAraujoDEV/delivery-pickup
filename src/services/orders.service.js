@@ -1,5 +1,6 @@
 import { getModels } from '../models/index.js';
 import { randomUUID } from 'crypto';
+import { Op } from 'sequelize';
 
 const STATUS_FLOW = ['PENDING_REVIEW', 'IN_KITCHEN', 'READY_FOR_DISPATCH', 'EN_ROUTE', 'DELIVERED'];
 
@@ -160,6 +161,101 @@ async function listOrdersByStatus() {
   return columns;
 }
 
+/**
+ * Admin: listado general de órdenes.
+ * @param {{ status?: string, date?: string }} filters
+ * - status: filtra por current_status
+ * - date: 'today' o 'YYYY-MM-DD' (usa timestamp_creation)
+ */
+async function listOrders(filters = {}) {
+  const { Notes } = getModels();
+  const where = {};
+
+  if (filters.status) {
+    where.current_status = filters.status;
+  }
+
+  if (filters.date) {
+    const now = new Date();
+    let start;
+    let end;
+    if (filters.date === 'today') {
+      start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    } else {
+      // Expect YYYY-MM-DD
+      const m = /^\d{4}-\d{2}-\d{2}$/.exec(filters.date);
+      if (m) {
+        const [y, mo, d] = filters.date.split('-').map((x) => Number(x));
+        start = new Date(y, mo - 1, d);
+        end = new Date(y, mo - 1, d + 1);
+      }
+    }
+    if (start && end) {
+      where.timestamp_creation = { [Op.gte]: start, [Op.lt]: end };
+    }
+  }
+
+  const notes = await Notes.findAll({ where, order: [['timestamp_creation', 'DESC']] });
+  return notes;
+}
+
+/**
+ * Admin: detalle completo de una orden.
+ * Incluye items, logs y zona (si existe).
+ */
+async function getOrderDetail(note_id) {
+  const { Notes, NoteItems, Logs, Zones, Managers } = getModels();
+  const note = await Notes.findByPk(note_id, {
+    include: [
+      { model: NoteItems, as: 'items' },
+      { model: Logs, as: 'logs', include: [{ model: Managers, as: 'manager' }] },
+      { model: Zones, as: 'zone', required: false },
+    ],
+    order: [[{ model: Logs, as: 'logs' }, 'timestamp_transition', 'ASC']],
+  });
+  return note;
+}
+
+/**
+ * Admin: correcciones de datos de la orden.
+ * Modifica campos editables en Notes.
+ */
+async function patchOrder(note_id, payload) {
+  const { Notes } = getModels();
+  const note = await Notes.findByPk(note_id);
+  if (!note) return null;
+  await note.update(payload);
+  return note;
+}
+
+/**
+ * Admin: asignar motorizado.
+ * Nota: No existe tabla/campo de drivers en este proyecto aún.
+ * Como fallback, registramos la asignación como un log (manager_id) y opcionalmente un texto.
+ */
+async function assignOrder(note_id, payload) {
+  const { Notes, Logs } = getModels();
+  const note = await Notes.findByPk(note_id);
+  if (!note) return null;
+
+  const prev = note.current_status;
+
+  // No cambiamos estado por defecto (no estaba definido un status de "ASSIGNED").
+  // Si luego se agrega, esto puede evolucionar.
+
+  await Logs.create({
+    log_id: randomUUID(),
+    note_id: note.note_id,
+    manager_id: payload.manager_id || null,
+    status_from: prev,
+    status_to: prev,
+    cancellation_reason: payload.note || null,
+  });
+
+  return { note_id: note.note_id, readable_id: note.readable_id, assigned_to: payload.manager_id || null };
+}
+
 export default {
   createOrder,
   getAndAdvanceStatus,
@@ -169,4 +265,8 @@ export default {
   closeOrder,
   webhookKitchenReady,
   listOrdersByStatus,
+  listOrders,
+  getOrderDetail,
+  patchOrder,
+  assignOrder,
 };

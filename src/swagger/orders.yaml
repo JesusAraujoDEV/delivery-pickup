@@ -3,6 +3,32 @@ tags:
 
 paths:
   /api/dp/v1/orders:
+    get:
+      tags: [Orders]
+      summary: Listado general de órdenes
+      parameters:
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum: [PENDING_REVIEW, IN_KITCHEN, READY_FOR_DISPATCH, EN_ROUTE, DELIVERED, CANCELLED]
+        - in: query
+          name: date
+          required: false
+          description: '"today" o fecha "YYYY-MM-DD" (filtra por timestamp_creation)'
+          schema:
+            type: string
+            example: today
+      responses:
+        '200':
+          description: Lista de órdenes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NoteOrderListItem'
     post:
       tags: [Orders]
       summary: Crear orden
@@ -166,3 +192,204 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/OrderItem'
+
+    NoteOrderListItem:
+      type: object
+      description: Resumen de orden (basado en dp_notes)
+      properties:
+        note_id:
+          type: string
+          format: uuid
+        readable_id:
+          type: string
+        customer_name:
+          type: string
+        customer_phone:
+          type: string
+        customer_email:
+          type: string
+          nullable: true
+        delivery_address:
+          type: string
+          nullable: true
+        service_type:
+          type: string
+          enum: [DELIVERY, PICKUP]
+        current_status:
+          type: string
+        monto_total:
+          type: number
+          format: decimal
+        monto_costo_envio:
+          type: number
+          format: decimal
+        timestamp_creation:
+          type: string
+          format: date-time
+
+    PatchOrderInput:
+      type: object
+      description: Campos editables para corrección (customer y/o campos directos de notes)
+      properties:
+        customer:
+          type: object
+          properties:
+            name:
+              type: string
+            phone:
+              type: string
+            email:
+              type: string
+            address:
+              type: string
+        zone_id:
+          type: string
+          format: uuid
+          nullable: true
+        customer_name:
+          type: string
+        customer_phone:
+          type: string
+        customer_email:
+          type: string
+          nullable: true
+        delivery_address:
+          type: string
+          nullable: true
+        monto_total:
+          type: number
+        monto_costo_envio:
+          type: number
+        service_type:
+          type: string
+
+    AssignOrderInput:
+      type: object
+      description: 'Asignar motorizado (placeholder: aún no hay tabla drivers; se registra como log)'
+      properties:
+        manager_id:
+          type: string
+          format: uuid
+        note:
+          type: string
+
+    OrderDetail:
+      type: object
+      description: Detalle completo (note + items + logs)
+      properties:
+        note_id:
+          type: string
+          format: uuid
+        readable_id:
+          type: string
+        customer_name:
+          type: string
+        customer_phone:
+          type: string
+        customer_email:
+          type: string
+          nullable: true
+        delivery_address:
+          type: string
+          nullable: true
+        service_type:
+          type: string
+          enum: [DELIVERY, PICKUP]
+        current_status:
+          type: string
+        monto_total:
+          type: number
+          format: decimal
+        monto_costo_envio:
+          type: number
+          format: decimal
+        timestamp_creation:
+          type: string
+          format: date-time
+        zone:
+          type: object
+          nullable: true
+        items:
+          type: array
+          items:
+            type: object
+        logs:
+          type: array
+          items:
+            type: object
+
+  /api/dp/v1/orders/{note_id}:
+    get:
+      tags: [Orders]
+      summary: Detalle completo de una orden
+      parameters:
+        - in: path
+          name: note_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detalle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetail'
+        '400':
+          description: ID inválido
+        '404':
+          description: Orden no encontrada
+
+    patch:
+      tags: [Orders]
+      summary: Corregir datos de la orden
+      parameters:
+        - in: path
+          name: note_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchOrderInput'
+      responses:
+        '200':
+          description: Orden actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetail'
+        '400':
+          description: Payload/params inválidos
+        '404':
+          description: Orden no encontrada
+
+  /api/dp/v1/orders/{note_id}/assign:
+    patch:
+      tags: [Orders]
+      summary: Asignar motorizado (placeholder)
+      parameters:
+        - in: path
+          name: note_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignOrderInput'
+      responses:
+        '200':
+          description: Asignación registrada
+        '400':
+          description: Payload/params inválidos
+        '404':
+          description: Orden no encontrada
