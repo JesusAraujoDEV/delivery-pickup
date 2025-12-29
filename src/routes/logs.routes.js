@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import controller from '../controllers/logs.controller.js';
+import { authorize } from '../middlewares/auth.middleware.js';
 import {
   validateParams,
   validateQuery,
@@ -11,15 +12,15 @@ import {
 const router = Router();
 
 // Historial general
-router.get('/logs', validateQuery(logsSearchQuerySchema), controller.list);
+router.get('/logs', authorize('Logs_dp', 'Read'), validateQuery(logsSearchQuerySchema), controller.list);
 
 // Search (mismos filtros, pero queda explícito)
-router.get('/logs/search', validateQuery(logsSearchQuerySchema), controller.search);
+router.get('/logs/search', authorize('Logs_dp', 'Read'), validateQuery(logsSearchQuerySchema), controller.search);
 
 // Historia de una orden
-router.get('/logs/by-note/:note_id', validateParams(noteIdParamSchema), validateQuery(logsSearchQuerySchema), controller.listByNote);
+router.get('/logs/by-note/:note_id', authorize('Logs_dp', 'Read'), validateParams(noteIdParamSchema), validateQuery(logsSearchQuerySchema), controller.listByNote);
 
 // Detalle
-router.get('/logs/:log_id', validateParams(logIdParamSchema), controller.get);
+router.get('/logs/:log_id', authorize('Logs_dp', 'Read'), validateParams(logIdParamSchema), controller.get);
 
 export default router;
