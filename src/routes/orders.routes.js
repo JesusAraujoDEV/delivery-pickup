@@ -9,6 +9,7 @@ import {
 	listOrdersQuerySchema,
 	patchOrderSchema,
 	assignOrderSchema,
+	setOrderStatusSchema,
 } from '../schemas/orders.schemas.js';
 
 const router = Router();
@@ -18,6 +19,9 @@ router.get('/', validateQuery(listOrdersQuerySchema), ctrl.listOrders);
 
 router.post('/', validate(createOrderSchema), ctrl.createOrder);
 router.get('/:readable_id/status', ctrl.getAndAdvanceStatus);
+
+// Admin: cambio de estado por destino (note_id)
+router.patch('/:note_id/status', validateParams(noteIdParamSchema), validate(setOrderStatusSchema), ctrl.setOrderStatus);
 
 // Admin: detalle / edición / asignación
 router.get('/:note_id', validateParams(noteIdParamSchema), ctrl.getOrderDetail);

@@ -71,6 +71,13 @@ export const orderStatusSchema = Joi.object({
   ).required(),
 });
 
+// Para endpoint PATCH /orders/{note_id}/status
+export const setOrderStatusSchema = Joi.object({
+  status: Joi.string()
+    .valid('PENDING_REVIEW', 'IN_KITCHEN', 'READY_FOR_DISPATCH', 'EN_ROUTE', 'DELIVERED', 'CANCELLED')
+    .required(),
+}).required();
+
 export function validate(schema) {
   return (req, res, next) => {
     const { error, value } = schema.validate(req.body, { abortEarly: false, stripUnknown: true });

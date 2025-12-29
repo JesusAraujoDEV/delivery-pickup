@@ -137,6 +137,33 @@ async function webhookKitchenReady(readable_id) {
   return { readable_id: note.readable_id, status: 'READY_FOR_DISPATCH' };
 }
 
+/**
+ * Admin: cambio de estado por estado destino.
+ * Actualiza timestamps según el status destino y registra log.
+ */
+async function setOrderStatus(note_id, status_to) {
+  const { Notes, Logs } = getModels();
+  const note = await Notes.findByPk(note_id);
+  if (!note) return null;
+
+  const status_from = note.current_status;
+  if (status_from === status_to) {
+    return { note_id: note.note_id, readable_id: note.readable_id, status: note.current_status };
+  }
+
+  const now = new Date();
+  const timestamps = {};
+  if (status_to === 'IN_KITCHEN') timestamps.timestamp_approved = now;
+  if (status_to === 'READY_FOR_DISPATCH') timestamps.timestamp_ready = now;
+  if (status_to === 'EN_ROUTE') timestamps.timestamp_dispatched = now;
+  if (status_to === 'DELIVERED') timestamps.timestamp_closure = now;
+
+  await note.update({ current_status: status_to, ...timestamps });
+  await Logs.create({ log_id: randomUUID(), note_id: note.note_id, status_from, status_to });
+
+  return { note_id: note.note_id, readable_id: note.readable_id, status: status_to };
+}
+
 async function listOrdersByStatus() {
   const { Notes } = getModels();
   const notes = await Notes.findAll({ order: [['timestamp_creation', 'DESC']] });
@@ -269,4 +296,5 @@ export default {
   getOrderDetail,
   patchOrder,
   assignOrder,
+  setOrderStatus,
 };

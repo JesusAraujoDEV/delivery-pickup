@@ -135,6 +135,19 @@ async function assignOrder(req, res, next) {
   }
 }
 
+// Admin: cambio de estado por estado destino
+async function setOrderStatus(req, res, next) {
+  try {
+    const { note_id } = req.params;
+    const { status } = req.body;
+    const data = await ordersService.setOrderStatus(note_id, status);
+    if (!data) return res.status(404).json({ message: 'Order not found' });
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export default {
   createOrder,
   getAndAdvanceStatus,
@@ -146,4 +159,5 @@ export default {
   getOrderDetail,
   patchOrder,
   assignOrder,
+  setOrderStatus,
 };

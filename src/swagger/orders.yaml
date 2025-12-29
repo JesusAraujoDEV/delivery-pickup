@@ -78,6 +78,43 @@ paths:
         '200':
           description: Orden aprobada
 
+  /api/dp/v1/orders/{note_id}/status:
+    patch:
+      tags: [Orders]
+      summary: Cambiar estado de una orden (estado destino)
+      parameters:
+        - in: path
+          name: note_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetOrderStatusInput'
+      responses:
+        '200':
+          description: Estado actualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  note_id:
+                    type: string
+                    format: uuid
+                  readable_id:
+                    type: string
+                  status:
+                    type: string
+        '400':
+          description: Payload/params inválidos
+        '404':
+          description: Orden no encontrada
+
   /api/dp/v1/orders/{note_id}/cancel:
     post:
       tags: [Orders]
@@ -131,6 +168,14 @@ components:
           type: string
         price:
           type: number
+
+    SetOrderStatusInput:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [PENDING_REVIEW, IN_KITCHEN, READY_FOR_DISPATCH, EN_ROUTE, DELIVERED, CANCELLED]
 
     OrderItem:
       type: object
