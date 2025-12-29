@@ -11,19 +11,28 @@ paths:
               schema:
                 type: object
                 properties:
+                  source:
+                    type: string
+                    example: kitchen-api
                   items:
                     type: array
                     items:
                       $ref: '#/components/schemas/CatalogItem'
 
-  components:
-    schemas:
-      CatalogItem:
-        type: object
-        properties:
-          product_id:
-            type: string
-          name:
-            type: string
-          price:
-            type: number
+components:
+  schemas:
+    CatalogItem:
+      type: object
+      properties:
+        product_id:
+          type: string
+          description: ID del producto (id del API de Cocina)
+        name:
+          type: string
+          nullable: true
+        price:
+          type: number
+          nullable: true
+        available:
+          type: boolean
+      required: [product_id, available]
