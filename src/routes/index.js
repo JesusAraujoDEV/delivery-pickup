@@ -8,6 +8,7 @@ import thresholdsRoutes from './thresholds.routes.js';
 import notesRoutes from './notes.routes.js';
 import zonesRoutes from './zones.routes.js';
 import managersRoutes from './managers.routes.js';
+import logsRoutes from './logs.routes.js';
 
 const router = Router();
 
@@ -18,6 +19,7 @@ router.use('/webhooks', webhookRoutes);
 router.use('/reports', reportRoutes);
 router.use('/', thresholdsRoutes);
 router.use('/', notesRoutes);
+router.use('/', logsRoutes);
 router.use('/', zonesRoutes);
 router.use('/managers', managersRoutes);
 

@@ -1,0 +1,231 @@
+tags:
+  - name: Logs
+
+paths:
+  /api/dp/v1/logs:
+    get:
+      tags: [Logs]
+      summary: Ver historial general
+      parameters:
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum: [PENDING_REVIEW, IN_KITCHEN, READY_FOR_DISPATCH, EN_ROUTE, DELIVERED, CANCELLED]
+        - in: query
+          name: manager_id
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: from
+          required: false
+          description: Fecha inicio ISO (timestamp_transition)
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          required: false
+          description: Fecha fin ISO (timestamp_transition)
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 50
+        - in: query
+          name: offset
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Lista de logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Log'
+
+  /api/dp/v1/logs/{log_id}:
+    get:
+      tags: [Logs]
+      summary: Ver detalle de un evento
+      parameters:
+        - in: path
+          name: log_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Log
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Log'
+        '404':
+          description: No encontrado
+
+  /api/dp/v1/logs/by-note/{note_id}:
+    get:
+      tags: [Logs]
+      summary: Ver la historia de una orden específica
+      parameters:
+        - in: path
+          name: note_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 200
+        - in: query
+          name: offset
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Lista de logs para note_id
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Log'
+
+  /api/dp/v1/logs/search:
+    get:
+      tags: [Logs]
+      summary: Filtrar por estatus, fechas, usuarios
+      description: |
+        Endpoint equivalente a GET /logs pero explícito para búsqueda.
+        Permite filtrar por status_to, manager_id y rango de fechas (timestamp_transition).
+      parameters:
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum: [PENDING_REVIEW, IN_KITCHEN, READY_FOR_DISPATCH, EN_ROUTE, DELIVERED, CANCELLED]
+        - in: query
+          name: manager_id
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: from
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 50
+        - in: query
+          name: offset
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Lista de logs filtrados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Log'
+
+components:
+  schemas:
+    ManagerSummary:
+      type: object
+      properties:
+        manager_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        full_name:
+          type: string
+        role:
+          type: string
+        is_active:
+          type: boolean
+
+    NoteSummary:
+      type: object
+      properties:
+        note_id:
+          type: string
+          format: uuid
+        readable_id:
+          type: string
+        current_status:
+          type: string
+
+    Log:
+      type: object
+      properties:
+        log_id:
+          type: string
+          format: uuid
+        note_id:
+          type: string
+          format: uuid
+        manager_id:
+          type: string
+          format: uuid
+          nullable: true
+        timestamp_transition:
+          type: string
+          format: date-time
+        status_from:
+          type: string
+          nullable: true
+        status_to:
+          type: string
+        cancellation_reason:
+          type: string
+          nullable: true
+        manager:
+          $ref: '#/components/schemas/ManagerSummary'
+        note:
+          $ref: '#/components/schemas/NoteSummary'
