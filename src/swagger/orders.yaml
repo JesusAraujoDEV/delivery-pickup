@@ -46,11 +46,43 @@ paths:
               schema:
                 $ref: '#/components/schemas/Order'
 
+  /api/dp/v1/orders/active:
+    get:
+      tags: [Orders]
+      summary: Listado de órdenes activas
+      description: Devuelve todas las órdenes excepto las CANCELLED y las DELIVERED.
+      parameters:
+        - in: query
+          name: date
+          required: false
+          description: '"today" o fecha "YYYY-MM-DD" (filtra por timestamp_creation)'
+          schema:
+            type: string
+            example: today
+      responses:
+        '200':
+          description: Lista de órdenes activas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NoteOrderListItem'
+
   /api/dp/v1/orders/{note_id}/status:
     patch:
       tags: [Orders]
       summary: Cambiar estado de una orden (recomendado)
-      description: 'Endpoint único para cambio de estado por destino. Reemplaza approve/cancel/dispatch/close.'
+      description: |
+        Endpoint único para cambio de estado por destino. Reemplaza approve/cancel/dispatch/close.
+
+        Reglas de transición (VALID_TRANSITIONS):
+        - PENDING_REVIEW -> IN_KITCHEN, CANCELLED
+        - IN_KITCHEN -> READY_FOR_DISPATCH, CANCELLED
+        - READY_FOR_DISPATCH -> EN_ROUTE, DELIVERED, CANCELLED
+        - EN_ROUTE -> DELIVERED, CANCELLED
+        - DELIVERED -> (terminal)
+        - CANCELLED -> (terminal)
       parameters:
         - in: path
           name: note_id
@@ -80,7 +112,26 @@ paths:
                   status:
                     type: string
         '400':
-          description: Payload/params inválidos
+          description: Payload/params inválidos o transición inválida
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Invalid status transition: IN_KITCHEN -> DELIVERED'
+                  details:
+                    type: object
+                    properties:
+                      from:
+                        type: string
+                      to:
+                        type: string
+                      allowed:
+                        type: array
+                        items:
+                          type: string
         '404':
           description: Orden no encontrada
 

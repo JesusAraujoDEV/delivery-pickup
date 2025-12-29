@@ -13,6 +13,13 @@ export const listOrdersQuerySchema = Joi.object({
     .optional(),
 });
 
+// Igual que listOrdersQuerySchema, pero sin status: este endpoint siempre excluye DELIVERED y CANCELLED
+export const listActiveOrdersQuerySchema = Joi.object({
+  date: Joi.alternatives()
+    .try(Joi.string().valid('today'), Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/))
+    .optional(),
+});
+
 export const patchOrderSchema = Joi.object({
   customer: Joi.object({
     name: Joi.string().optional(),
@@ -70,6 +77,16 @@ export const orderStatusSchema = Joi.object({
     'CANCELLED'
   ).required(),
 });
+
+// Matriz de transición de estados permitidos
+export const VALID_TRANSITIONS = {
+  PENDING_REVIEW: ['IN_KITCHEN', 'CANCELLED'],
+  IN_KITCHEN: ['READY_FOR_DISPATCH', 'CANCELLED'],
+  READY_FOR_DISPATCH: ['EN_ROUTE', 'DELIVERED', 'CANCELLED'],
+  EN_ROUTE: ['DELIVERED', 'CANCELLED'],
+  DELIVERED: [],
+  CANCELLED: [],
+};
 
 // Para endpoint PATCH /orders/{note_id}/status
 export const setOrderStatusSchema = Joi.object({

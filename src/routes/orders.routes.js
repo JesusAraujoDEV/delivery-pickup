@@ -7,6 +7,7 @@ import {
 	createOrderSchema,
 	noteIdParamSchema,
 	listOrdersQuerySchema,
+	listActiveOrdersQuerySchema,
 	patchOrderSchema,
 	assignOrderSchema,
 	setOrderStatusSchema,
@@ -16,6 +17,9 @@ const router = Router();
 
 // Admin: listado general con filtros
 router.get('/', validateQuery(listOrdersQuerySchema), ctrl.listOrders);
+
+// Admin: listado de órdenes activas (excluye CANCELLED y DELIVERED)
+router.get('/active', validateQuery(listActiveOrdersQuerySchema), ctrl.listActiveOrders);
 
 router.post('/', validate(createOrderSchema), ctrl.createOrder);
 

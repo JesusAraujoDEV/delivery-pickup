@@ -43,6 +43,17 @@ async function listOrders(req, res, next) {
   }
 }
 
+// Admin: listado de órdenes activas (excluye CANCELLED y DELIVERED)
+async function listActiveOrders(req, res, next) {
+  try {
+    const { date } = req.query || {};
+    const data = await ordersService.listActiveOrders({ date });
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+}
+
 // Admin: detalle completo por note_id
 async function getOrderDetail(req, res, next) {
   try {
@@ -88,6 +99,9 @@ async function setOrderStatus(req, res, next) {
     if (!data) return res.status(404).json({ message: 'Order not found' });
     res.json(data);
   } catch (err) {
+    if (err?.statusCode === 400) {
+      return res.status(400).json({ message: err.message, details: err.details });
+    }
     next(err);
   }
 }
@@ -95,6 +109,7 @@ async function setOrderStatus(req, res, next) {
 export default {
   createOrder,
   listOrders,
+  listActiveOrders,
   getOrderDetail,
   patchOrder,
   assignOrder,

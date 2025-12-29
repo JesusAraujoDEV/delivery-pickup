@@ -1,6 +1,7 @@
 import { getModels } from '../models/index.js';
 import { randomUUID } from 'crypto';
 import { Op } from 'sequelize';
+import { VALID_TRANSITIONS } from '../schemas/orders.schemas.js';
 
 const STATUS_FLOW = ['PENDING_REVIEW', 'IN_KITCHEN', 'READY_FOR_DISPATCH', 'EN_ROUTE', 'DELIVERED'];
 
@@ -76,6 +77,14 @@ async function setOrderStatus(note_id, status_to) {
   const status_from = note.current_status;
   if (status_from === status_to) {
     return { note_id: note.note_id, readable_id: note.readable_id, status: note.current_status };
+  }
+
+  const allowedNext = VALID_TRANSITIONS?.[status_from] ?? [];
+  if (!allowedNext.includes(status_to)) {
+    const err = new Error(`Invalid status transition: ${status_from} -> ${status_to}`);
+    err.statusCode = 400;
+    err.details = { from: status_from, to: status_to, allowed: allowedNext };
+    throw err;
   }
 
   const now = new Date();
@@ -155,6 +164,41 @@ async function listOrders(filters = {}) {
 }
 
 /**
+ * Admin: listado de órdenes activas.
+ * Activas = todas excepto CANCELLED y DELIVERED.
+ * @param {{ date?: string }} filters
+ */
+async function listActiveOrders(filters = {}) {
+  const { Notes } = getModels();
+  const where = {
+    current_status: { [Op.notIn]: ['CANCELLED', 'DELIVERED'] },
+  };
+
+  if (filters.date) {
+    const now = new Date();
+    let start;
+    let end;
+    if (filters.date === 'today') {
+      start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    } else {
+      const m = /^\d{4}-\d{2}-\d{2}$/.exec(filters.date);
+      if (m) {
+        const [y, mo, d] = filters.date.split('-').map((x) => Number(x));
+        start = new Date(y, mo - 1, d);
+        end = new Date(y, mo - 1, d + 1);
+      }
+    }
+    if (start && end) {
+      where.timestamp_creation = { [Op.gte]: start, [Op.lt]: end };
+    }
+  }
+
+  const notes = await Notes.findAll({ where, order: [['timestamp_creation', 'DESC']] });
+  return notes;
+}
+
+/**
  * Admin: detalle completo de una orden.
  * Incluye items, logs y zona (si existe).
  */
@@ -215,6 +259,7 @@ export default {
   webhookKitchenReady,
   listOrdersByStatus,
   listOrders,
+  listActiveOrders,
   getOrderDetail,
   patchOrder,
   assignOrder,
