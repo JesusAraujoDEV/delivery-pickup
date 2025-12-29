@@ -2,8 +2,7 @@ import { getModels } from '../models/index.js';
 import { randomUUID } from 'crypto';
 import { Op } from 'sequelize';
 import { VALID_TRANSITIONS } from '../schemas/orders.schemas.js';
-
-const STATUS_FLOW = ['PENDING_REVIEW', 'IN_KITCHEN', 'READY_FOR_DISPATCH', 'EN_ROUTE', 'DELIVERED'];
+import { fetchKitchenProducts, validateOrderItemsAgainstKitchenProducts } from './kitchen.service.js';
 
 function generateReadableId() {
   // Simple human-readable id: DL-XXXX
@@ -18,8 +17,19 @@ async function createOrder(payload) {
   const itemsTotal = payload.items.reduce((acc, it) => acc + Number(it.unit_price) * Number(it.quantity), 0);
   const total = itemsTotal + Number(payload.shipping_cost);
 
-  // Simulated stock validation (always true while kitchen API doesn't exist)
-  // In future: call GET /inventory/availability/{id}
+  // Kitchen validation: ensure products exist and are active
+  const kitchenProducts = await fetchKitchenProducts();
+  const validation = validateOrderItemsAgainstKitchenProducts(payload.items, kitchenProducts, {
+    // Optional fallback by name. Keep false by default since product_id should match kitchen product id.
+    fallbackByName: false,
+  });
+
+  if (!validation.ok) {
+    const err = new Error('One or more order items are invalid in Kitchen products catalog');
+    err.statusCode = 400;
+    err.details = { invalidItems: validation.invalid };
+    throw err;
+  }
 
   const readable_id = generateReadableId();
 

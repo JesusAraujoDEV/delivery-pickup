@@ -28,6 +28,8 @@ async function createOrder(req, res, next) {
     res.status(201).json(order);
   } catch (err) {
     if (err.isJoi) return res.status(400).json({ message: 'Validation error', details: err.details });
+    if (err?.statusCode === 400) return res.status(400).json({ message: err.message, details: err.details });
+    if (err?.statusCode === 502) return res.status(502).json({ message: err.message, details: err.details });
     next(err);
   }
 }
