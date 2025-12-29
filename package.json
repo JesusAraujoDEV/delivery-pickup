@@ -12,6 +12,8 @@
     "migrations:revert": "sequelize-cli db:migrate:undo --config src/db/config.cjs --migrations-path src/db/migrations",
     "migrations:revert:all": "sequelize-cli db:migrate:undo:all --config src/db/config.cjs --migrations-path src/db/migrations",
     "migrations:generate": "sequelize-cli migration:generate --name"
+    ,
+    "test:integration": "node --test"
   },
   "dependencies": {
     "express": "^4.19.2",
