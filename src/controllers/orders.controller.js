@@ -32,62 +32,6 @@ async function createOrder(req, res, next) {
   }
 }
 
-async function getAndAdvanceStatus(req, res, next) {
-  try {
-    const { readable_id } = req.params;
-    const data = await ordersService.getAndAdvanceStatus(readable_id);
-    if (!data) return res.status(404).json({ message: 'Order not found' });
-    res.json(data);
-  } catch (err) {
-    next(err);
-  }
-}
-
-async function approveOrder(req, res, next) {
-  try {
-    const { note_id } = req.params;
-    const data = await ordersService.approveOrder(note_id);
-    if (!data) return res.status(404).json({ message: 'Order not found' });
-    res.json(data);
-  } catch (err) {
-    next(err);
-  }
-}
-
-async function cancelOrder(req, res, next) {
-  try {
-    const { note_id } = req.params;
-    const { reason } = req.body || {};
-    const data = await ordersService.cancelOrder(note_id, reason);
-    if (!data) return res.status(404).json({ message: 'Order not found' });
-    res.json(data);
-  } catch (err) {
-    next(err);
-  }
-}
-
-async function dispatchOrder(req, res, next) {
-  try {
-    const { note_id } = req.params;
-    const data = await ordersService.dispatchOrder(note_id);
-    if (!data) return res.status(404).json({ message: 'Order not found' });
-    res.json(data);
-  } catch (err) {
-    next(err);
-  }
-}
-
-async function closeOrder(req, res, next) {
-  try {
-    const { note_id } = req.params;
-    const data = await ordersService.closeOrder(note_id);
-    if (!data) return res.status(404).json({ message: 'Order not found' });
-    res.json(data);
-  } catch (err) {
-    next(err);
-  }
-}
-
 // Admin: listado general
 async function listOrders(req, res, next) {
   try {
@@ -150,11 +94,6 @@ async function setOrderStatus(req, res, next) {
 
 export default {
   createOrder,
-  getAndAdvanceStatus,
-  approveOrder,
-  cancelOrder,
-  dispatchOrder,
-  closeOrder,
   listOrders,
   getOrderDetail,
   patchOrder,

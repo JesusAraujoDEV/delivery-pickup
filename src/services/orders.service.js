@@ -53,79 +53,6 @@ async function createOrder(payload) {
   return { note_id: note.note_id, readable_id, status: note.current_status };
 }
 
-async function getAndAdvanceStatus(readable_id) {
-  const { Notes, Logs } = getModels();
-  const note = await Notes.findOne({ where: { readable_id } });
-  if (!note) return null;
-
-  const currentIndex = STATUS_FLOW.indexOf(note.current_status);
-  const nextIndex = Math.min(currentIndex + 1, STATUS_FLOW.length - 1);
-  const nextStatus = STATUS_FLOW[nextIndex];
-
-  if (nextStatus !== note.current_status) {
-    const now = new Date();
-    const timestamps = {};
-    if (nextStatus === 'IN_KITCHEN') timestamps.timestamp_approved = now;
-    if (nextStatus === 'READY_FOR_DISPATCH') timestamps.timestamp_ready = now;
-    if (nextStatus === 'EN_ROUTE') timestamps.timestamp_dispatched = now;
-    if (nextStatus === 'DELIVERED') timestamps.timestamp_closure = now;
-
-  await note.update({ current_status: nextStatus, ...timestamps });
-  await Logs.create({ log_id: randomUUID(), note_id: note.note_id, status_from: STATUS_FLOW[currentIndex], status_to: nextStatus });
-  }
-
-  return { readable_id, status: nextStatus };
-}
-
-async function approveOrder(note_id) {
-  const { Notes, Logs } = getModels();
-  const note = await Notes.findByPk(note_id);
-  if (!note) return null;
-
-  const prev = note.current_status;
-  await note.update({ current_status: 'IN_KITCHEN', timestamp_approved: new Date() });
-  await Logs.create({ log_id: randomUUID(), note_id: note.note_id, status_from: prev, status_to: 'IN_KITCHEN' });
-
-  // Simulate POST /api/kitchen/v1/queue/inject
-  // In future, perform axios/fetch here. For now, just console log.
-  console.log(`[SIM] Kitchen inject for note ${note.readable_id}`);
-
-  return { readable_id: note.readable_id, status: 'IN_KITCHEN' };
-}
-
-async function cancelOrder(note_id, reason) {
-  const { Notes, Logs } = getModels();
-  const note = await Notes.findByPk(note_id);
-  if (!note) return null;
-
-  const prev = note.current_status;
-  await note.update({ current_status: 'CANCELLED' });
-  await Logs.create({ log_id: randomUUID(), note_id: note.note_id, status_from: prev, status_to: 'CANCELLED', cancellation_reason: reason || null });
-  return { readable_id: note.readable_id, status: 'CANCELLED' };
-}
-
-async function dispatchOrder(note_id) {
-  const { Notes, Logs } = getModels();
-  const note = await Notes.findByPk(note_id);
-  if (!note) return null;
-
-  const prev = note.current_status;
-  await note.update({ current_status: 'EN_ROUTE', timestamp_dispatched: new Date() });
-  await Logs.create({ log_id: randomUUID(), note_id: note.note_id, status_from: prev, status_to: 'EN_ROUTE' });
-  return { readable_id: note.readable_id, status: 'EN_ROUTE' };
-}
-
-async function closeOrder(note_id) {
-  const { Notes, Logs } = getModels();
-  const note = await Notes.findByPk(note_id);
-  if (!note) return null;
-
-  const prev = note.current_status;
-  await note.update({ current_status: 'DELIVERED', timestamp_closure: new Date() });
-  await Logs.create({ log_id: randomUUID(), note_id: note.note_id, status_from: prev, status_to: 'DELIVERED' });
-  return { readable_id: note.readable_id, status: 'DELIVERED' };
-}
-
 async function webhookKitchenReady(readable_id) {
   const { Notes, Logs } = getModels();
   const note = await Notes.findOne({ where: { readable_id } });
@@ -285,11 +212,6 @@ async function assignOrder(note_id, payload) {
 
 export default {
   createOrder,
-  getAndAdvanceStatus,
-  approveOrder,
-  cancelOrder,
-  dispatchOrder,
-  closeOrder,
   webhookKitchenReady,
   listOrdersByStatus,
   listOrders,

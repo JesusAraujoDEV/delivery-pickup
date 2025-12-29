@@ -46,42 +46,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/Order'
 
-  /api/dp/v1/orders/{readable_id}/status:
-    get:
-      tags: [Orders]
-      summary: Obtener/avanzar estado de orden
-      parameters:
-        - in: path
-          name: readable_id
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Estado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrderStatus'
-
-  /api/dp/v1/orders/{note_id}/approve:
-    post:
-      tags: [Orders]
-      summary: Aprobar orden
-      parameters:
-        - in: path
-          name: note_id
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Orden aprobada
-
   /api/dp/v1/orders/{note_id}/status:
     patch:
       tags: [Orders]
-      summary: Cambiar estado de una orden (estado destino)
+      summary: Cambiar estado de una orden (recomendado)
+      description: 'Endpoint único para cambio de estado por destino. Reemplaza approve/cancel/dispatch/close.'
       parameters:
         - in: path
           name: note_id
@@ -114,48 +83,6 @@ paths:
           description: Payload/params inválidos
         '404':
           description: Orden no encontrada
-
-  /api/dp/v1/orders/{note_id}/cancel:
-    post:
-      tags: [Orders]
-      summary: Cancelar orden
-      parameters:
-        - in: path
-          name: note_id
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Orden cancelada
-
-  /api/dp/v1/orders/{note_id}/dispatch:
-    put:
-      tags: [Orders]
-      summary: Despachar orden
-      parameters:
-        - in: path
-          name: note_id
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Orden despachada
-
-  /api/dp/v1/orders/{note_id}/close:
-    put:
-      tags: [Orders]
-      summary: Cerrar orden
-      parameters:
-        - in: path
-          name: note_id
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Orden cerrada
 
 components:
   schemas:
