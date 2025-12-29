@@ -21,10 +21,6 @@ const ZonesSchema = {
     allowNull: false,
     type: DataTypes.DECIMAL(10,2),
   },
-  coverage_data: {
-    allowNull: true,
-    type: DataTypes.JSONB,
-  },
   is_active: {
     allowNull: false,
     type: DataTypes.BOOLEAN,

@@ -59,8 +59,6 @@ components:
           type: integer
         shipping_cost:
           type: number
-        coverage_data:
-          type: object
         is_active:
           type: boolean
 
@@ -78,8 +76,6 @@ components:
           type: integer
         shipping_cost:
           type: number
-        coverage_data:
-          type: object
         is_active:
           type: boolean
 
@@ -93,7 +89,5 @@ components:
           type: integer
         shipping_cost:
           type: number
-        coverage_data:
-          type: object
         is_active:
           type: boolean
