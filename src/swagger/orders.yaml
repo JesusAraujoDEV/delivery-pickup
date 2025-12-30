@@ -76,6 +76,7 @@ paths:
     patch:
       tags: [Orders]
       summary: Cambiar estado de una orden (recomendado)
+      security: []
       description: |
         Endpoint único para cambio de estado por destino. Reemplaza approve/cancel/dispatch/close.
 

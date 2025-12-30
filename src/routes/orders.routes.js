@@ -32,7 +32,7 @@ router.post(
 );
 
 // Estado por destino (note_id) - endpoint único
-router.patch('/:note_id/status', authorize('Notes_dp', 'Update'), validateParams(noteIdParamSchema), validate(setOrderStatusSchema), ctrl.setOrderStatus);
+router.patch('/:note_id/status', validateParams(noteIdParamSchema), validate(setOrderStatusSchema), ctrl.setOrderStatus);
 
 // Admin: detalle / edición / asignación
 router.get('/:note_id', validateParams(noteIdParamSchema), ctrl.getOrderDetail);
