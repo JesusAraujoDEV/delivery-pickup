@@ -6,3 +6,15 @@ info:
 servers:
   - url: http://localhost:3000
     description: Desarrollo
+
+# JWT (Bearer) auth for Swagger UI
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+# By default, protect all endpoints in docs (you can override per-path with "security: []" if needed)
+security:
+  - bearerAuth: []
