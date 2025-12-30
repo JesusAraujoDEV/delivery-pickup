@@ -15,6 +15,5 @@ components:
       scheme: bearer
       bearerFormat: JWT
 
-# By default, protect all endpoints in docs (you can override per-path with "security: []" if needed)
-security:
-  - bearerAuth: []
+# Nota: No marcamos seguridad global para permitir endpoints públicos (especialmente GET).
+# Si un endpoint requiere JWT, puede declarar `security: [{ bearerAuth: [] }]` a nivel de path/operation.

@@ -7,21 +7,20 @@ import { VALID_METRICS } from '../utils/constants.js';
 
 const router = Router();
 
-router.get('/thresholds', authorize('Thresholds_dp', 'Read'), controller.list);
+router.get('/thresholds', controller.list);
 
 // Important: specific routes before ":threshold_id" to avoid conflicts
 router.get('/thresholds/active', controller.listActive);
 
 router.get(
 	'/thresholds/by-metric/:metric_affected',
-	authorize('Thresholds_dp', 'Read'),
 	validateParams(Joi.object({ metric_affected: Joi.string().valid(...VALID_METRICS).required() })),
 	controller.getByMetric,
 );
 
 router.post('/thresholds', authorize('Thresholds_dp', 'Create'), validateBody(createThresholdSchema), controller.create);
 
-router.get('/thresholds/:threshold_id', authorize('Thresholds_dp', 'Read'), validateParams(thresholdIdParamSchema), controller.get);
+router.get('/thresholds/:threshold_id', validateParams(thresholdIdParamSchema), controller.get);
 
 router.patch('/thresholds/:threshold_id/activate', authorize('Thresholds_dp', 'Update'), validateParams(thresholdIdParamSchema), controller.activate);
 router.patch('/thresholds/:threshold_id/deactivate', authorize('Thresholds_dp', 'Update'), validateParams(thresholdIdParamSchema), controller.deactivate);

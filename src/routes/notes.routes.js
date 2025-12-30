@@ -17,15 +17,15 @@ import {
 const router = Router();
 
 // Notes
-router.get('/notes', authorize('Notes_dp', 'Read'), notesController.list);
+router.get('/notes', notesController.list);
 
-router.get('/notes/by-readable/:readable_id', authorize('Notes_dp', 'Read'), validateParams(readableIdParamSchema), notesController.getByReadable);
+router.get('/notes/by-readable/:readable_id', validateParams(readableIdParamSchema), notesController.getByReadable);
 
-router.get('/notes/:note_id', authorize('Notes_dp', 'Read'), validateParams(noteIdParamSchema), notesController.get);
+router.get('/notes/:note_id', validateParams(noteIdParamSchema), notesController.get);
 router.patch('/notes/:note_id', authorize('Notes_dp', 'Update'), validateParams(noteIdParamSchema), validateBody(patchNoteSchema), notesController.patch);
 
 // Note Items
-router.get('/notes/:note_id/items', authorize('NotesItems_dp', 'Read'), validateParams(noteIdParamSchema), itemsController.listForNote);
+router.get('/notes/:note_id/items', validateParams(noteIdParamSchema), itemsController.listForNote);
 router.post(
   '/notes/:note_id/items',
   authorize('NotesItems_dp', 'Create'),

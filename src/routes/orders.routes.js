@@ -19,10 +19,10 @@ import {
 const router = Router();
 
 // Admin: listado general con filtros
-router.get('/', authorize('Notes_dp', 'Read'), validateQuery(listOrdersQuerySchema), ctrl.listOrders);
+router.get('/', validateQuery(listOrdersQuerySchema), ctrl.listOrders);
 
 // Admin: listado de órdenes activas (excluye CANCELLED y DELIVERED)
-router.get('/active', authorize('Notes_dp', 'Read'), validateQuery(listActiveOrdersQuerySchema), ctrl.listActiveOrders);
+router.get('/active', validateQuery(listActiveOrdersQuerySchema), ctrl.listActiveOrders);
 
 router.post(
 	'/',
@@ -35,7 +35,7 @@ router.post(
 router.patch('/:note_id/status', authorize('Notes_dp', 'Update'), validateParams(noteIdParamSchema), validate(setOrderStatusSchema), ctrl.setOrderStatus);
 
 // Admin: detalle / edición / asignación
-router.get('/:note_id', authorize('Notes_dp', 'Read'), validateParams(noteIdParamSchema), ctrl.getOrderDetail);
+router.get('/:note_id', validateParams(noteIdParamSchema), ctrl.getOrderDetail);
 router.patch('/:note_id', authorize('Notes_dp', 'Update'), validateParams(noteIdParamSchema), validate(patchOrderSchema), ctrl.patchOrder);
 router.patch('/:note_id/assign', authorize('Logs_dp', 'Create'), validateParams(noteIdParamSchema), validate(assignOrderSchema), ctrl.assignOrder);
 
