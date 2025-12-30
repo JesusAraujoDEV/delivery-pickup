@@ -1,6 +1,54 @@
 const KITCHEN_BASE_URL = process.env.KITCHEN_BASE_URL || 'https://charlotte-cocina.onrender.com/api/kitchen';
 
 /**
+ * Crea una orden en Cocina.
+ *
+ * Nota: no tenemos el contrato oficial completo aquí, así que implementamos una versión
+ * flexible que envía el payload y valida la respuesta de forma defensiva.
+ *
+ * Payload sugerido por negocio:
+ * {
+ *  externalOrderId: string,
+ *  sourceModule: string,
+ *  serviceMode: string,
+ *  displayLabel: string,
+ *  customerName?: string,
+ *  items: Array<{ productId: string, quantity: number, notes?: string }>
+ * }
+ */
+export async function createKitchenOrder(payload) {
+  // API real de Cocina para inyectar órdenes al KDS
+  const url = `${KITCHEN_BASE_URL}/kds/inject`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload ?? {}),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    const err = new Error(`Kitchen API error (${res.status}): ${text || res.statusText}`);
+    err.statusCode = 502;
+    throw err;
+  }
+
+  const json = await res.json().catch(() => null);
+  // Aceptamos varias formas, pero al menos debe ser un objeto.
+  if (!json || typeof json !== 'object') {
+    const err = new Error('Kitchen API response invalid');
+    err.statusCode = 502;
+    err.details = json;
+    throw err;
+  }
+
+  return json;
+}
+
+/**
  * Obtiene el catálogo de productos activos/inactivos desde cocina.
  * Response esperado:
  * { success: boolean, message: string, data: Array<{id,name,isActive,basePrice,...}> }

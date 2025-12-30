@@ -3,9 +3,11 @@ import ctrl from '../controllers/orders.controller.js';
 import { authorize } from '../middlewares/auth.middleware.js';
 import {
 	validate,
+	validateOneOf,
 	validateParams,
 	validateQuery,
 	createOrderSchema,
+	kitchenLikeCreateOrderSchema,
 	noteIdParamSchema,
 	listOrdersQuerySchema,
 	listActiveOrdersQuerySchema,
@@ -22,7 +24,12 @@ router.get('/', authorize('Notes_dp', 'Read'), validateQuery(listOrdersQuerySche
 // Admin: listado de órdenes activas (excluye CANCELLED y DELIVERED)
 router.get('/active', authorize('Notes_dp', 'Read'), validateQuery(listActiveOrdersQuerySchema), ctrl.listActiveOrders);
 
-router.post('/', authorize('Notes_dp', 'Create'), validate(createOrderSchema), ctrl.createOrder);
+router.post(
+	'/',
+	authorize('Notes_dp', 'Create'),
+	validateOneOf([createOrderSchema, kitchenLikeCreateOrderSchema]),
+	ctrl.createOrder
+);
 
 // Estado por destino (note_id) - endpoint único
 router.patch('/:note_id/status', authorize('Notes_dp', 'Update'), validateParams(noteIdParamSchema), validate(setOrderStatusSchema), ctrl.setOrderStatus);

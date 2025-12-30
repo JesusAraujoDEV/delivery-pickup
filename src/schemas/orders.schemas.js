@@ -67,6 +67,44 @@ export const createOrderSchema = Joi.object({
   shipping_cost: Joi.number().precision(2).min(0).optional(),
 });
 
+// Payload pedido (Kitchen-like)
+export const kitchenLikeCreateOrderSchema = Joi.object({
+  externalOrderId: Joi.string().required(),
+  sourceModule: Joi.string().required(),
+  serviceMode: Joi.string().required(),
+  displayLabel: Joi.string().required(),
+  customerName: Joi.string().required(),
+  items: Joi.array()
+    .items(
+      Joi.object({
+        productId: Joi.string().required(),
+        quantity: Joi.number().integer().min(1).required(),
+        notes: Joi.string().allow('', null).optional(),
+      })
+    )
+    .min(1)
+    .required(),
+}).required();
+
+export function validateOneOf(schemas) {
+  return (req, res, next) => {
+    const errors = [];
+    for (const schema of schemas) {
+      const { error, value } = schema.validate(req.body, { abortEarly: false, stripUnknown: true });
+      if (!error) {
+        req.body = value;
+        return next();
+      }
+      errors.push(error);
+    }
+
+    return res.status(400).json({
+      message: 'Validation error',
+      details: errors[0]?.details || [],
+    });
+  };
+}
+
 export const orderStatusSchema = Joi.object({
   status: Joi.string().valid(
     'PENDING_REVIEW',

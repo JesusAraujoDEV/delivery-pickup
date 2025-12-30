@@ -2,7 +2,7 @@ import { getModels } from '../models/index.js';
 import { randomUUID } from 'crypto';
 import { Op } from 'sequelize';
 import { VALID_TRANSITIONS } from '../schemas/orders.schemas.js';
-import { fetchKitchenProducts, validateOrderItemsAgainstKitchenProducts } from './kitchen.service.js';
+import { createKitchenOrder, fetchKitchenProducts, validateOrderItemsAgainstKitchenProducts } from './kitchen.service.js';
 
 function generateReadableId() {
   // Simple human-readable id: DL-XXXX
@@ -13,13 +13,63 @@ function generateReadableId() {
 async function createOrder(payload) {
   const { Notes, NoteItems, Logs } = getModels();
 
-  // Sum items
-  const itemsTotal = payload.items.reduce((acc, it) => acc + Number(it.unit_price) * Number(it.quantity), 0);
-  const total = itemsTotal + Number(payload.shipping_cost);
+  // Support two input shapes:
+  // 1) DP shape (existing): { service_type, customer:{...}, items:[{product_id,product_name,quantity,unit_price}], shipping_cost, zone_id }
+  // 2) Kitchen-like shape (requested):
+  //    { externalOrderId, sourceModule, serviceMode, displayLabel, customerName, items:[{productId,quantity,notes}] }
+  const isKitchenLike = payload && Array.isArray(payload.items) && payload.items.length > 0 && payload.items[0].productId;
 
+  const dpPayload = isKitchenLike
+    ? {
+        service_type: 'PICKUP',
+        customer: {
+          name: payload.customerName || 'Cliente',
+          phone: 'N/A',
+          email: 'n/a@example.com',
+          address: '',
+        },
+        // Map kitchen-like items to DP-style items. Prices will be filled from Kitchen catalog.
+        items: payload.items.map((it) => ({
+          product_id: String(it.productId),
+          product_name: String(it.productId),
+          quantity: it.quantity,
+          unit_price: 0,
+          notes: it.notes,
+        })),
+        shipping_cost: 0,
+        zone_id: null,
+        _kitchenOrder: {
+          externalOrderId: payload.externalOrderId,
+          sourceModule: payload.sourceModule,
+          serviceMode: payload.serviceMode,
+          displayLabel: payload.displayLabel,
+          customerName: payload.customerName,
+          items: payload.items,
+        },
+      }
+    : payload;
+
+  // Sum items
   // Kitchen validation: ensure products exist and are active
   const kitchenProducts = await fetchKitchenProducts();
-  const validation = validateOrderItemsAgainstKitchenProducts(payload.items, kitchenProducts, {
+  const byId = new Map(kitchenProducts.map((p) => [String(p.id), p]));
+
+  // If this request didn't provide unit_price/product_name (kitchen-like), fill them from kitchen catalog.
+  if (isKitchenLike) {
+    dpPayload.items = dpPayload.items.map((it) => {
+      const p = byId.get(String(it.product_id));
+      return {
+        ...it,
+        product_name: p?.name ?? it.product_name,
+        unit_price: p?.basePrice ?? 0,
+      };
+    });
+  }
+
+  const itemsTotal = dpPayload.items.reduce((acc, it) => acc + Number(it.unit_price) * Number(it.quantity), 0);
+  const total = itemsTotal + Number(dpPayload.shipping_cost || 0);
+
+  const validation = validateOrderItemsAgainstKitchenProducts(dpPayload.items, kitchenProducts, {
     // Optional fallback by name. Keep false by default since product_id should match kitchen product id.
     fallbackByName: false,
   });
@@ -33,23 +83,54 @@ async function createOrder(payload) {
 
   const readable_id = generateReadableId();
 
+  // Create order in Kitchen first (so if it fails, we don't persist DP order)
+  // If request was DP-shape, we can still create in Kitchen with a best-effort mapping.
+  const externalOrderId = isKitchenLike ? dpPayload._kitchenOrder.externalOrderId : randomUUID();
+  const kitchenOrderPayload = isKitchenLike
+    ? dpPayload._kitchenOrder
+    : {
+        externalOrderId,
+        sourceModule: 'DP_MODULE',
+        serviceMode: dpPayload.service_type === 'DELIVERY' ? 'DELIVERY' : 'PICKUP',
+        displayLabel: readable_id,
+        customerName: dpPayload.customer?.name,
+        items: (dpPayload.items || []).map((it) => ({
+          productId: String(it.product_id),
+          quantity: it.quantity,
+          notes: it.notes,
+        })),
+      };
+
+  const kitchenOrderRes = await createKitchenOrder(kitchenOrderPayload);
+  // Try to extract a stable id from kitchen response, fallback to externalOrderId
+  const kitchenOrderId =
+    kitchenOrderRes?.data?.id ??
+    kitchenOrderRes?.data?.orderId ??
+    kitchenOrderRes?.data?.externalOrderId ??
+    kitchenOrderRes?.data?.external_order_id ??
+    kitchenOrderRes?.id ??
+    kitchenOrderRes?.orderId ??
+    kitchenOrderRes?.externalOrderId ??
+    externalOrderId;
+
   const noteId = randomUUID();
   const note = await Notes.create({
     note_id: noteId,
     readable_id,
-    order_source_id: null,
-    customer_name: payload.customer.name,
-    customer_phone: payload.customer.phone,
-    customer_email: payload.customer.email,
-    delivery_address: payload.customer.address,
-    service_type: payload.service_type,
+    // Save kitchen order linkage
+    order_source_id: String(kitchenOrderId),
+    customer_name: dpPayload.customer.name,
+    customer_phone: dpPayload.customer.phone,
+    customer_email: dpPayload.customer.email,
+    delivery_address: dpPayload.customer.address,
+    service_type: dpPayload.service_type,
     current_status: 'PENDING_REVIEW',
     monto_total: total.toFixed(2),
-    monto_costo_envio: Number(payload.shipping_cost).toFixed(2),
-    zone_id: payload.zone_id || null,
+    monto_costo_envio: Number(dpPayload.shipping_cost || 0).toFixed(2),
+    zone_id: dpPayload.zone_id || null,
   });
 
-  const itemsToCreate = payload.items.map((it) => ({
+  const itemsToCreate = dpPayload.items.map((it) => ({
     item_id: randomUUID(),
     note_id: note.note_id,
     product_name: it.product_name,

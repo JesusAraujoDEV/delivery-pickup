@@ -32,6 +32,9 @@ paths:
     post:
       tags: [Orders]
       summary: Crear orden
+      description: |
+        Crea la orden en DP y la inyecta en Cocina.
+        Integración Cocina: se envía un POST a `/api/kitchen/kds/inject`.
       requestBody:
         required: true
         content:
@@ -180,6 +183,15 @@ components:
           type: string
 
     CreateOrderInput:
+      description: |
+        Se aceptan 2 formatos para crear una orden:
+        1) Formato DP (interno)
+        2) Formato Kitchen-like (recomendado para integraciones)
+      oneOf:
+        - $ref: '#/components/schemas/DpCreateOrderInput'
+        - $ref: '#/components/schemas/KitchenCreateOrderInput'
+
+    DpCreateOrderInput:
       type: object
       required: [service_type, customer, items, shipping_cost]
       properties:
@@ -194,6 +206,50 @@ components:
             $ref: '#/components/schemas/OrderItem'
         shipping_cost:
           type: number
+
+    KitchenCreateOrderInput:
+      type: object
+      required: [externalOrderId, sourceModule, serviceMode, displayLabel, customerName, items]
+      properties:
+        externalOrderId:
+          type: string
+        sourceModule:
+          type: string
+          example: AC_MODULE
+        serviceMode:
+          type: string
+          example: DINE_IN
+        displayLabel:
+          type: string
+          example: Hamburguesa para Pepe
+        customerName:
+          type: string
+          example: Pepe
+        items:
+          type: array
+          items:
+            type: object
+            required: [productId, quantity]
+            properties:
+              productId:
+                type: string
+                description: ID del producto en Cocina
+              quantity:
+                type: integer
+                minimum: 1
+              notes:
+                type: string
+                nullable: true
+      example:
+        externalOrderId: a81bc81b-dead-4e5d-abff-90865d1e41c2
+        sourceModule: AC_MODULE
+        serviceMode: DINE_IN
+        displayLabel: Hamburguesa para Pepe
+        customerName: Pepe
+        items:
+          - productId: a5eccd9f-8b62-4ba5-ac9e-21ca43199718
+            quantity: 3
+            notes: Sin cebolla
 
     OrderStatus:
       type: object
