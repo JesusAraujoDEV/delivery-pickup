@@ -26,7 +26,6 @@ router.get('/active', validateQuery(listActiveOrdersQuerySchema), ctrl.listActiv
 
 router.post(
 	'/',
-	authorize('Notes_dp', 'Create'),
 	validateOneOf([createOrderSchema, kitchenLikeCreateOrderSchema]),
 	ctrl.createOrder
 );
