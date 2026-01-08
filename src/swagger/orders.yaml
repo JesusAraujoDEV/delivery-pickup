@@ -431,6 +431,28 @@ components:
         '404':
           description: Orden no encontrada
 
+  /api/dp/v1/orders/by-readable/{readable_id}:
+    get:
+      tags: [Orders]
+      summary: Detalle completo de una orden por readable_id
+      description: Busca la orden por `readable_id` (ej: DL-1234) y devuelve el mismo detalle.
+      parameters:
+        - in: path
+          name: readable_id
+          required: true
+          schema:
+            type: string
+            example: DL-1234
+      responses:
+        '200':
+          description: Detalle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetail'
+        '404':
+          description: Orden no encontrada
+
     patch:
       tags: [Orders]
       summary: Corregir datos de la orden

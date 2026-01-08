@@ -48,6 +48,18 @@ async function getOrderDetail(req, res, next) {
   }
 }
 
+// Detalle completo por readable_id (ID legible)
+async function getOrderDetailByReadableId(req, res, next) {
+  try {
+    const { readable_id } = req.params;
+    const data = await ordersService.getOrderDetailByReadableId(readable_id);
+    if (!data) return res.status(404).json({ message: 'Order not found' });
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+}
+
 // Admin: patch de datos (corrección)
 async function patchOrder(req, res, next) {
   try {
@@ -93,6 +105,7 @@ export default {
   listOrders,
   listActiveOrders,
   getOrderDetail,
+  getOrderDetailByReadableId,
   patchOrder,
   assignOrder,
   setOrderStatus,

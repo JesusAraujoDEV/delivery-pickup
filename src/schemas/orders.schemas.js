@@ -4,6 +4,10 @@ export const noteIdParamSchema = Joi.object({
   note_id: Joi.string().guid({ version: ['uuidv4'] }).required(),
 });
 
+export const readableIdParamSchema = Joi.object({
+  readable_id: Joi.string().trim().max(64).required(),
+});
+
 export const listOrdersQuerySchema = Joi.object({
   status: Joi.string()
     .valid('PENDING_REVIEW', 'IN_KITCHEN', 'READY_FOR_DISPATCH', 'EN_ROUTE', 'DELIVERED', 'CANCELLED')

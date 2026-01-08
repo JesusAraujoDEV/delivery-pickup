@@ -333,6 +333,24 @@ async function getOrderDetail(note_id) {
 }
 
 /**
+ * Detalle completo de una orden por readable_id.
+ * Útil cuando el cliente/externo maneja un ID legible (ej: DL-1234).
+ */
+async function getOrderDetailByReadableId(readable_id) {
+  const { Notes, NoteItems, Logs, Zones, Managers } = getModels();
+  const note = await Notes.findOne({
+    where: { readable_id },
+    include: [
+      { model: NoteItems, as: 'items' },
+      { model: Logs, as: 'logs', include: [{ model: Managers, as: 'manager' }] },
+      { model: Zones, as: 'zone', required: false },
+    ],
+    order: [[{ model: Logs, as: 'logs' }, 'timestamp_transition', 'ASC']],
+  });
+  return note;
+}
+
+/**
  * Admin: correcciones de datos de la orden.
  * Modifica campos editables en Notes.
  */
@@ -378,6 +396,7 @@ export default {
   listOrders,
   listActiveOrders,
   getOrderDetail,
+  getOrderDetailByReadableId,
   patchOrder,
   assignOrder,
   setOrderStatus,

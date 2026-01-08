@@ -9,6 +9,7 @@ import {
 	createOrderSchema,
 	kitchenLikeCreateOrderSchema,
 	noteIdParamSchema,
+	readableIdParamSchema,
 	listOrdersQuerySchema,
 	listActiveOrdersQuerySchema,
 	patchOrderSchema,
@@ -23,6 +24,9 @@ router.get('/', validateQuery(listOrdersQuerySchema), ctrl.listOrders);
 
 // Admin: listado de órdenes activas (excluye CANCELLED y DELIVERED)
 router.get('/active', validateQuery(listActiveOrdersQuerySchema), ctrl.listActiveOrders);
+
+// Detalle por ID legible
+router.get('/by-readable/:readable_id', validateParams(readableIdParamSchema), ctrl.getOrderDetailByReadableId);
 
 router.post(
 	'/',
