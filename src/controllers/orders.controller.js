@@ -1,33 +1,13 @@
-import Joi from 'joi';
 import ordersService from '../services/orders.service.js';
-
-const itemSchema = Joi.object({
-  product_id: Joi.string().required(),
-  product_name: Joi.string().required(),
-  quantity: Joi.number().integer().min(1).required(),
-  unit_price: Joi.number().precision(2).required(),
-});
-
-const createOrderSchema = Joi.object({
-  service_type: Joi.string().valid('DELIVERY','PICKUP').required(),
-  customer: Joi.object({
-    name: Joi.string().required(),
-    phone: Joi.string().required(),
-    email: Joi.string().email().optional(),
-    address: Joi.string().allow('', null),
-  }).required(),
-  zone_id: Joi.string().guid({ version: 'uuidv4' }).optional(),
-  items: Joi.array().items(itemSchema).min(1).required(),
-  shipping_cost: Joi.number().precision(2).required(),
-});
 
 async function createOrder(req, res, next) {
   try {
-    const payload = await createOrderSchema.validateAsync(req.body, { abortEarly: false });
+    // La validación de payload se hace en la ruta con `validateOneOf([createOrderSchema, kitchenLikeCreateOrderSchema])`
+    // para evitar duplicidad y drift entre esquemas.
+    const payload = req.body;
     const order = await ordersService.createOrder(payload);
     res.status(201).json(order);
   } catch (err) {
-    if (err.isJoi) return res.status(400).json({ message: 'Validation error', details: err.details });
     if (err?.statusCode === 400) return res.status(400).json({ message: err.message, details: err.details });
     if (err?.statusCode === 502) return res.status(502).json({ message: err.message, details: err.details });
     next(err);
