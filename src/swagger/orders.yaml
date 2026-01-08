@@ -139,6 +139,104 @@ paths:
         '404':
           description: Orden no encontrada
 
+  /api/dp/v1/orders/{note_id}:
+    get:
+      tags: [Orders]
+      summary: Detalle completo de una orden
+      parameters:
+        - in: path
+          name: note_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detalle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetail'
+        '400':
+          description: ID inválido
+        '404':
+          description: Orden no encontrada
+
+    patch:
+      tags: [Orders]
+      summary: Corregir datos de la orden
+      parameters:
+        - in: path
+          name: note_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchOrderInput'
+      responses:
+        '200':
+          description: Orden actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetail'
+        '400':
+          description: Payload/params inválidos
+        '404':
+          description: Orden no encontrada
+
+  /api/dp/v1/orders/by-readable/{readable_id}:
+    get:
+      tags: [Orders]
+      summary: Detalle completo de una orden por readable_id
+      description: 'Busca la orden por readable_id (ej: DL-1234) y devuelve el mismo detalle.'
+      parameters:
+        - in: path
+          name: readable_id
+          required: true
+          schema:
+            type: string
+            example: DL-1234
+      responses:
+        '200':
+          description: Detalle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetail'
+        '404':
+          description: Orden no encontrada
+
+  /api/dp/v1/orders/{note_id}/assign:
+    patch:
+      tags: [Orders]
+      summary: Asignar motorizado (placeholder)
+      parameters:
+        - in: path
+          name: note_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignOrderInput'
+      responses:
+        '200':
+          description: Asignación registrada
+        '400':
+          description: Payload/params inválidos
+        '404':
+          description: Orden no encontrada
+
 components:
   schemas:
     CatalogItem:
@@ -407,101 +505,3 @@ components:
           type: array
           items:
             type: object
-
-  /api/dp/v1/orders/{note_id}:
-    get:
-      tags: [Orders]
-      summary: Detalle completo de una orden
-      parameters:
-        - in: path
-          name: note_id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Detalle
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrderDetail'
-        '400':
-          description: ID inválido
-        '404':
-          description: Orden no encontrada
-
-  /api/dp/v1/orders/by-readable/{readable_id}:
-    get:
-      tags: [Orders]
-      summary: Detalle completo de una orden por readable_id
-      description: Busca la orden por `readable_id` (ej: DL-1234) y devuelve el mismo detalle.
-      parameters:
-        - in: path
-          name: readable_id
-          required: true
-          schema:
-            type: string
-            example: DL-1234
-      responses:
-        '200':
-          description: Detalle
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrderDetail'
-        '404':
-          description: Orden no encontrada
-
-    patch:
-      tags: [Orders]
-      summary: Corregir datos de la orden
-      parameters:
-        - in: path
-          name: note_id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchOrderInput'
-      responses:
-        '200':
-          description: Orden actualizada
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrderDetail'
-        '400':
-          description: Payload/params inválidos
-        '404':
-          description: Orden no encontrada
-
-  /api/dp/v1/orders/{note_id}/assign:
-    patch:
-      tags: [Orders]
-      summary: Asignar motorizado (placeholder)
-      parameters:
-        - in: path
-          name: note_id
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AssignOrderInput'
-      responses:
-        '200':
-          description: Asignación registrada
-        '400':
-          description: Payload/params inválidos
-        '404':
-          description: Orden no encontrada
