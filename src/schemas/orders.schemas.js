@@ -62,8 +62,10 @@ export const customerSchema = Joi.object({
 
 export const createOrderSchema = Joi.object({
   service_type: Joi.string().valid('DELIVERY', 'PICKUP').required(),
+  zone_id: Joi.string().guid({ version: ['uuidv4'] }).required(),
   customer: customerSchema.required(),
   items: Joi.array().items(orderItemSchema).min(1).required(),
+  // Nota: se acepta opcionalmente pero el backend lo calcula desde la zona.
   shipping_cost: Joi.number().precision(2).min(0).optional(),
 });
 
@@ -74,6 +76,7 @@ export const kitchenLikeCreateOrderSchema = Joi.object({
   serviceMode: Joi.string().required(),
   displayLabel: Joi.string().required(),
   customerName: Joi.string().required(),
+  zone_id: Joi.string().guid({ version: ['uuidv4'] }).required(),
   items: Joi.array()
     .items(
       Joi.object({

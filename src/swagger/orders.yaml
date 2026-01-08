@@ -194,11 +194,15 @@ components:
 
     DpCreateOrderInput:
       type: object
-      required: [service_type, customer, items, shipping_cost]
+      required: [service_type, zone_id, customer, items]
       properties:
         service_type:
           type: string
           enum: [DELIVERY, PICKUP]
+        zone_id:
+          type: string
+          format: uuid
+          description: ID de la zona (dp_zones.zone_id). Requerido.
         customer:
           $ref: '#/components/schemas/Customer'
         items:
@@ -207,10 +211,11 @@ components:
             $ref: '#/components/schemas/OrderItem'
         shipping_cost:
           type: number
+          description: Se ignora si se envía; el backend lo calcula desde la zona.
 
     KitchenCreateOrderInput:
       type: object
-      required: [externalOrderId, sourceModule, serviceMode, displayLabel, customerName, items]
+      required: [externalOrderId, sourceModule, serviceMode, displayLabel, customerName, zone_id, items]
       properties:
         externalOrderId:
           type: string
@@ -226,6 +231,10 @@ components:
         customerName:
           type: string
           example: Pepe
+        zone_id:
+          type: string
+          format: uuid
+          description: ID de la zona (dp_zones.zone_id). Requerido.
         items:
           type: array
           items:
@@ -247,6 +256,7 @@ components:
         serviceMode: DINE_IN
         displayLabel: Hamburguesa para Pepe
         customerName: Pepe
+        zone_id: 35f5a507-0eb3-4c78-a43d-cf0da720cf2d
         items:
           - productId: a5eccd9f-8b62-4ba5-ac9e-21ca43199718
             quantity: 3

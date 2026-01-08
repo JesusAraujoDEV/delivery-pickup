@@ -11,17 +11,18 @@ function generateReadableId() {
 }
 
 async function createOrder(payload) {
-  const { Notes, NoteItems, Logs } = getModels();
+  const { Notes, NoteItems, Logs, Zones } = getModels();
 
   // Support two input shapes:
-  // 1) DP shape (existing): { service_type, customer:{...}, items:[{product_id,product_name,quantity,unit_price}], shipping_cost, zone_id }
-  // 2) Kitchen-like shape (requested):
-  //    { externalOrderId, sourceModule, serviceMode, displayLabel, customerName, items:[{productId,quantity,notes}] }
+  // 1) DP shape: { service_type, zone_id, customer:{...}, items:[{product_id,product_name,quantity,unit_price}], shipping_cost? }
+  // 2) Kitchen-like shape:
+  //    { externalOrderId, sourceModule, serviceMode, displayLabel, customerName, zone_id, items:[{productId,quantity,notes}] }
   const isKitchenLike = payload && Array.isArray(payload.items) && payload.items.length > 0 && payload.items[0].productId;
 
   const dpPayload = isKitchenLike
     ? {
         service_type: 'PICKUP',
+        zone_id: payload.zone_id,
         customer: {
           name: payload.customerName || 'Cliente',
           phone: 'N/A',
@@ -37,7 +38,6 @@ async function createOrder(payload) {
           notes: it.notes,
         })),
         shipping_cost: 0,
-        zone_id: null,
         _kitchenOrder: {
           externalOrderId: payload.externalOrderId,
           sourceModule: payload.sourceModule,
@@ -49,7 +49,34 @@ async function createOrder(payload) {
       }
     : payload;
 
-  // Sum items
+  if (!dpPayload?.zone_id) {
+    const err = new Error('zone_id is required');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const zone = await Zones.findByPk(dpPayload.zone_id);
+  if (!zone) {
+    const err = new Error('Zone not found');
+    err.statusCode = 400;
+    err.details = { zone_id: dpPayload.zone_id };
+    throw err;
+  }
+  if (zone.is_active === false) {
+    const err = new Error('Zone is inactive');
+    err.statusCode = 400;
+    err.details = { zone_id: dpPayload.zone_id };
+    throw err;
+  }
+
+  const derivedShippingCost = Number(zone.shipping_cost);
+  if (Number.isNaN(derivedShippingCost)) {
+    const err = new Error('Zone shipping_cost is invalid');
+    err.statusCode = 500;
+    err.details = { zone_id: dpPayload.zone_id, shipping_cost: zone.shipping_cost };
+    throw err;
+  }
+
   // Kitchen validation: ensure products exist and are active
   const kitchenProducts = await fetchKitchenProducts();
   const byId = new Map(kitchenProducts.map((p) => [String(p.id), p]));
@@ -61,16 +88,12 @@ async function createOrder(payload) {
       return {
         ...it,
         product_name: p?.name ?? it.product_name,
-        unit_price: p?.basePrice ?? 0,
+        unit_price: Number(p?.basePrice ?? it.unit_price ?? 0),
       };
     });
   }
 
-  const itemsTotal = dpPayload.items.reduce((acc, it) => acc + Number(it.unit_price) * Number(it.quantity), 0);
-  const total = itemsTotal + Number(dpPayload.shipping_cost || 0);
-
   const validation = validateOrderItemsAgainstKitchenProducts(dpPayload.items, kitchenProducts, {
-    // Optional fallback by name. Keep false by default since product_id should match kitchen product id.
     fallbackByName: false,
   });
 
@@ -81,10 +104,15 @@ async function createOrder(payload) {
     throw err;
   }
 
+  // Override any provided shipping_cost with the zone-derived value
+  dpPayload.shipping_cost = derivedShippingCost;
+
+  const itemsTotal = dpPayload.items.reduce((acc, it) => acc + Number(it.unit_price) * Number(it.quantity), 0);
+  const total = itemsTotal + derivedShippingCost;
+
   const readable_id = generateReadableId();
 
   // Create order in Kitchen first (so if it fails, we don't persist DP order)
-  // If request was DP-shape, we can still create in Kitchen with a best-effort mapping.
   const externalOrderId = isKitchenLike ? dpPayload._kitchenOrder.externalOrderId : randomUUID();
   const kitchenOrderPayload = isKitchenLike
     ? dpPayload._kitchenOrder
@@ -102,7 +130,6 @@ async function createOrder(payload) {
       };
 
   const kitchenOrderRes = await createKitchenOrder(kitchenOrderPayload);
-  // Try to extract a stable id from kitchen response, fallback to externalOrderId
   const kitchenOrderId =
     kitchenOrderRes?.data?.id ??
     kitchenOrderRes?.data?.orderId ??
@@ -117,7 +144,6 @@ async function createOrder(payload) {
   const note = await Notes.create({
     note_id: noteId,
     readable_id,
-    // Save kitchen order linkage
     order_source_id: String(kitchenOrderId),
     customer_name: dpPayload.customer.name,
     customer_phone: dpPayload.customer.phone,
@@ -126,8 +152,8 @@ async function createOrder(payload) {
     service_type: dpPayload.service_type,
     current_status: 'PENDING_REVIEW',
     monto_total: total.toFixed(2),
-    monto_costo_envio: Number(dpPayload.shipping_cost || 0).toFixed(2),
-    zone_id: dpPayload.zone_id || null,
+    monto_costo_envio: derivedShippingCost.toFixed(2),
+    zone_id: dpPayload.zone_id,
   });
 
   const itemsToCreate = dpPayload.items.map((it) => ({
