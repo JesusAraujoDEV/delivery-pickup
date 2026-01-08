@@ -9,7 +9,7 @@ import {
 	createOrderSchema,
 	kitchenLikeCreateOrderSchema,
 	noteIdParamSchema,
-	readableIdParamSchema,
+	orderIdParamSchema,
 	listOrdersQuerySchema,
 	listActiveOrdersQuerySchema,
 	patchOrderSchema,
@@ -25,9 +25,6 @@ router.get('/', validateQuery(listOrdersQuerySchema), ctrl.listOrders);
 // Admin: listado de órdenes activas (excluye CANCELLED y DELIVERED)
 router.get('/active', validateQuery(listActiveOrdersQuerySchema), ctrl.listActiveOrders);
 
-// Detalle por ID legible
-router.get('/by-readable/:readable_id', validateParams(readableIdParamSchema), ctrl.getOrderDetailByReadableId);
-
 router.post(
 	'/',
 	validateOneOf([createOrderSchema, kitchenLikeCreateOrderSchema]),
@@ -38,7 +35,7 @@ router.post(
 router.patch('/:note_id/status', validateParams(noteIdParamSchema), validate(setOrderStatusSchema), ctrl.setOrderStatus);
 
 // Admin: detalle / edición / asignación
-router.get('/:note_id', validateParams(noteIdParamSchema), ctrl.getOrderDetail);
+router.get('/:id', validateParams(orderIdParamSchema), ctrl.getOrderDetailFlexible);
 router.patch('/:note_id', authorize('Notes_dp', 'Update'), validateParams(noteIdParamSchema), validate(patchOrderSchema), ctrl.patchOrder);
 router.patch('/:note_id/assign', authorize('Logs_dp', 'Create'), validateParams(noteIdParamSchema), validate(assignOrderSchema), ctrl.assignOrder);
 

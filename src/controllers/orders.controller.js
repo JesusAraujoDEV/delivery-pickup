@@ -48,11 +48,14 @@ async function getOrderDetail(req, res, next) {
   }
 }
 
-// Detalle completo por readable_id (ID legible)
-async function getOrderDetailByReadableId(req, res, next) {
+// Detalle completo por ID flexible:
+// - UUIDv4 => busca por note_id
+// - DL-#### => busca por readable_id
+async function getOrderDetailFlexible(req, res, next) {
   try {
-    const { readable_id } = req.params;
-    const data = await ordersService.getOrderDetailByReadableId(readable_id);
+    const { id } = req.params;
+    const isUuidV4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+    const data = isUuidV4 ? await ordersService.getOrderDetail(id) : await ordersService.getOrderDetailByReadableId(id);
     if (!data) return res.status(404).json({ message: 'Order not found' });
     res.json(data);
   } catch (err) {
@@ -105,7 +108,7 @@ export default {
   listOrders,
   listActiveOrders,
   getOrderDetail,
-  getOrderDetailByReadableId,
+  getOrderDetailFlexible,
   patchOrder,
   assignOrder,
   setOrderStatus,

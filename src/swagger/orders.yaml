@@ -139,17 +139,24 @@ paths:
         '404':
           description: Orden no encontrada
 
-  /api/dp/v1/orders/{note_id}:
+  /api/dp/v1/orders/{id}:
     get:
       tags: [Orders]
-      summary: Detalle completo de una orden
+      summary: Detalle completo de una orden (UUID o DL-####)
+      description: |
+        Permite consultar el detalle por:
+        - `note_id` (UUIDv4)
+        - `readable_id` (ej: DL-8095)
       parameters:
         - in: path
-          name: note_id
+          name: id
           required: true
           schema:
-            type: string
-            format: uuid
+            oneOf:
+              - type: string
+                format: uuid
+              - type: string
+                example: DL-8095
       responses:
         '200':
           description: Detalle
@@ -167,7 +174,7 @@ paths:
       summary: Corregir datos de la orden
       parameters:
         - in: path
-          name: note_id
+          name: id
           required: true
           schema:
             type: string
@@ -187,28 +194,6 @@ paths:
                 $ref: '#/components/schemas/OrderDetail'
         '400':
           description: Payload/params inválidos
-        '404':
-          description: Orden no encontrada
-
-  /api/dp/v1/orders/by-readable/{readable_id}:
-    get:
-      tags: [Orders]
-      summary: Detalle completo de una orden por readable_id
-      description: 'Busca la orden por readable_id (ej: DL-1234) y devuelve el mismo detalle.'
-      parameters:
-        - in: path
-          name: readable_id
-          required: true
-          schema:
-            type: string
-            example: DL-1234
-      responses:
-        '200':
-          description: Detalle
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrderDetail'
         '404':
           description: Orden no encontrada
 
