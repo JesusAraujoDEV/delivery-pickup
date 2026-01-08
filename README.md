@@ -99,10 +99,12 @@ npm run db:test
 ```powershell
 curl -Method POST -Uri http://localhost:3000/api/dp/v1/orders -ContentType 'application/json' -Body '{
   "service_type":"DELIVERY",
+  "zone_id":"35f5a507-0eb3-4c78-a43d-cf0da720cf2d",
   "customer":{"name":"Juan","phone":"555-123","email":"juan@example.com","address":"Calle 1"},
-  "items":[{"product_id":"K-100","product_name":"Hamburguesa Clásica","quantity":2,"unit_price":5.99}],
-  "shipping_cost":2.50
+  "items":[{"product_id":"a5eccd9f-8b62-4ba5-ac9e-21ca43199718","product_name":"Hamburguesa Royal","quantity":2,"unit_price":25}]
 }'
+
+# Nota: "shipping_cost" no es requerido; el backend lo calcula desde la zona (dp_zones.shipping_cost).
 ```
 
 1. Consultar/avanzar estado:
