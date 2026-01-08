@@ -163,6 +163,7 @@ async function createOrder(payload) {
     quantity: it.quantity,
     unit_price: it.unit_price,
     subtotal: (Number(it.unit_price) * Number(it.quantity)).toFixed(2),
+    notes: it.notes ?? null,
   }));
   await NoteItems.bulkCreate(itemsToCreate);
 

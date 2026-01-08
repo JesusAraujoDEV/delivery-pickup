@@ -60,6 +60,7 @@ export const orderItemSchema = Joi.object({
   product_name: Joi.string().required(),
   quantity: Joi.number().integer().min(1).required(),
   unit_price: Joi.number().precision(2).min(0).required(),
+  notes: Joi.string().allow('', null).optional(),
 });
 
 export const customerSchema = Joi.object({

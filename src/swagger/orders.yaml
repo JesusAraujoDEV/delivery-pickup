@@ -253,6 +253,10 @@ components:
           type: integer
         unit_price:
           type: number
+        notes:
+          type: string
+          nullable: true
+          description: Nota para cocina (ej: 'Sin mayonesa')
 
     Customer:
       type: object

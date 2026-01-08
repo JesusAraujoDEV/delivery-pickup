@@ -35,6 +35,10 @@ const NoteItemsSchema = {
     allowNull: true,
     type: DataTypes.DECIMAL(10,2),
   },
+  notes: {
+    allowNull: true,
+    type: DataTypes.STRING(255),
+  },
 };
 
 class NoteItems extends Model {
