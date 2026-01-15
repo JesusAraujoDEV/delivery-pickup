@@ -256,7 +256,7 @@ components:
         notes:
           type: string
           nullable: true
-          description: Nota para cocina (ej: 'Sin mayonesa')
+          description: "Nota para cocina (ej: 'Sin mayonesa')"
 
     Customer:
       type: object
