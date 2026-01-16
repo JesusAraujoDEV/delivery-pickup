@@ -27,7 +27,7 @@ router.get('/', validateQuery(listOrdersQuerySchema), ctrl.listOrders);
 router.get('/active', validateQuery(listActiveOrdersQuerySchema), ctrl.listActiveOrders);
 
 // Admin: listado por status (path param)
-router.get('/status/:status', validateParams(orderStatusParamSchema), ctrl.listOrdersByStatus);
+router.get('/status/:status', validateParams(orderStatusParamSchema), validateQuery(listActiveOrdersQuerySchema), ctrl.listOrdersByStatus);
 
 router.post(
 	'/',

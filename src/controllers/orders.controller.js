@@ -29,7 +29,8 @@ async function listOrders(req, res, next) {
 async function listOrdersByStatus(req, res, next) {
   try {
     const { status } = req.params;
-    const data = await ordersService.listOrders({ status });
+    const { date } = req.query || {};
+    const data = await ordersService.listOrders({ status, date });
     res.json(data);
   } catch (err) {
     next(err);

@@ -83,6 +83,13 @@ paths:
           schema:
             type: string
             enum: [PENDING_REVIEW, IN_KITCHEN, READY_FOR_DISPATCH, EN_ROUTE, DELIVERED, CANCELLED]
+        - in: query
+          name: date
+          required: false
+          description: '"today" o fecha "YYYY-MM-DD" (filtra por timestamp_creation)'
+          schema:
+            type: string
+            example: today
       responses:
         '200':
           description: Lista de órdenes con ese status
