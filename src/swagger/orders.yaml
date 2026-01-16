@@ -72,6 +72,27 @@ paths:
                 items:
                   $ref: '#/components/schemas/NoteOrderListItem'
 
+  /api/dp/v1/orders/status/{status}:
+    get:
+      tags: [Orders]
+      summary: Listado de órdenes por status
+      parameters:
+        - in: path
+          name: status
+          required: true
+          schema:
+            type: string
+            enum: [PENDING_REVIEW, IN_KITCHEN, READY_FOR_DISPATCH, EN_ROUTE, DELIVERED, CANCELLED]
+      responses:
+        '200':
+          description: Lista de órdenes con ese status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NoteOrderListItem'
+
   /api/dp/v1/orders/{note_id}/status:
     patch:
       tags: [Orders]

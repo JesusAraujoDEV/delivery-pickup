@@ -129,6 +129,12 @@ export const orderStatusSchema = Joi.object({
   ).required(),
 });
 
+export const orderStatusParamSchema = Joi.object({
+  status: Joi.string()
+    .valid('PENDING_REVIEW', 'IN_KITCHEN', 'READY_FOR_DISPATCH', 'EN_ROUTE', 'DELIVERED', 'CANCELLED')
+    .required(),
+});
+
 // Matriz de transición de estados permitidos
 export const VALID_TRANSITIONS = {
   PENDING_REVIEW: ['IN_KITCHEN', 'CANCELLED'],

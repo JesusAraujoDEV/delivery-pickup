@@ -25,6 +25,17 @@ async function listOrders(req, res, next) {
   }
 }
 
+// Admin: listado por status (vía path param)
+async function listOrdersByStatus(req, res, next) {
+  try {
+    const { status } = req.params;
+    const data = await ordersService.listOrders({ status });
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+}
+
 // Admin: listado de órdenes activas (excluye CANCELLED y DELIVERED)
 async function listActiveOrders(req, res, next) {
   try {
@@ -106,6 +117,7 @@ async function setOrderStatus(req, res, next) {
 export default {
   createOrder,
   listOrders,
+  listOrdersByStatus,
   listActiveOrders,
   getOrderDetail,
   getOrderDetailFlexible,
