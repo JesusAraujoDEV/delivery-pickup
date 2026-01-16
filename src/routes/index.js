@@ -20,7 +20,7 @@ router.use('/reports', reportRoutes);
 router.use('/', thresholdsRoutes);
 router.use('/', notesRoutes);
 router.use('/', logsRoutes);
-router.use('/', zonesRoutes);
+router.use('/zones', zonesRoutes);
 router.use('/managers', managersRoutes);
 
 export default router;
