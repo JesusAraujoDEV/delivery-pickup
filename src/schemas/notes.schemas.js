@@ -1,7 +1,7 @@
 import Joi from 'joi';
 
-export const noteIdParamSchema = Joi.object({
-  note_id: Joi.string().guid({ version: ['uuidv4'] }).required(),
+export const orderIdParamSchema = Joi.object({
+  order_id: Joi.string().guid({ version: ['uuidv4'] }).required(),
 });
 
 export const itemIdParamSchema = Joi.object({
@@ -12,7 +12,7 @@ export const readableIdParamSchema = Joi.object({
   readable_id: Joi.string().trim().min(1).max(20).required(),
 });
 
-export const createNoteItemSchema = Joi.object({
+export const createOrderItemSchema = Joi.object({
   product_name: Joi.string().trim().min(1).max(150).required(),
   quantity: Joi.number().integer().min(1).required(),
   unit_price: Joi.number().precision(2).positive().required(),
@@ -20,14 +20,14 @@ export const createNoteItemSchema = Joi.object({
   subtotal: Joi.number().precision(2).positive().optional(),
 });
 
-export const patchNoteItemSchema = Joi.object({
+export const patchOrderItemSchema = Joi.object({
   product_name: Joi.string().trim().min(1).max(150).optional(),
   quantity: Joi.number().integer().min(1).optional(),
   unit_price: Joi.number().precision(2).positive().optional(),
   subtotal: Joi.number().precision(2).positive().optional(),
 }).min(1);
 
-export const patchNoteSchema = Joi.object({
+export const patchOrderSchema = Joi.object({
   // Permitimos actualizar datos principales sin tocar el flujo de órdenes.
   customer_name: Joi.string().trim().min(1).max(100).optional(),
   customer_phone: Joi.string().trim().min(1).max(20).optional(),

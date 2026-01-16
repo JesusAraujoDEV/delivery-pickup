@@ -79,13 +79,13 @@ paths:
         '404':
           description: No encontrado
 
-  /api/dp/v1/logs/by-note/{note_id}:
+  /api/dp/v1/logs/by-order/{order_id}:
     get:
       tags: [Logs]
       summary: Ver la historia de una orden específica
       parameters:
         - in: path
-          name: note_id
+          name: order_id
           required: true
           schema:
             type: string
@@ -107,7 +107,7 @@ paths:
             default: 0
       responses:
         '200':
-          description: Lista de logs para note_id
+          description: Lista de logs para order_id
           content:
             application/json:
               schema:
@@ -190,10 +190,10 @@ components:
         is_active:
           type: boolean
 
-    NoteSummary:
+    OrderSummary:
       type: object
       properties:
-        note_id:
+        order_id:
           type: string
           format: uuid
         readable_id:
@@ -207,7 +207,7 @@ components:
         log_id:
           type: string
           format: uuid
-        note_id:
+        order_id:
           type: string
           format: uuid
         manager_id:
@@ -227,5 +227,5 @@ components:
           nullable: true
         manager:
           $ref: '#/components/schemas/ManagerSummary'
-        note:
-          $ref: '#/components/schemas/NoteSummary'
+        order:
+          $ref: '#/components/schemas/OrderSummary'

@@ -48,11 +48,11 @@ async function listActiveOrders(req, res, next) {
   }
 }
 
-// Admin: detalle completo por note_id
+// Admin: detalle completo por order_id
 async function getOrderDetail(req, res, next) {
   try {
-    const { note_id } = req.params;
-    const data = await ordersService.getOrderDetail(note_id);
+    const { order_id } = req.params;
+    const data = await ordersService.getOrderDetail(order_id);
     if (!data) return res.status(404).json({ message: 'Order not found' });
     res.json(data);
   } catch (err) {
@@ -61,7 +61,7 @@ async function getOrderDetail(req, res, next) {
 }
 
 // Detalle completo por ID flexible:
-// - UUIDv4 => busca por note_id
+// - UUIDv4 => busca por order_id
 // - DL-#### => busca por readable_id
 async function getOrderDetailFlexible(req, res, next) {
   try {
@@ -78,8 +78,8 @@ async function getOrderDetailFlexible(req, res, next) {
 // Admin: patch de datos (corrección)
 async function patchOrder(req, res, next) {
   try {
-    const { note_id } = req.params;
-    const updated = await ordersService.patchOrder(note_id, req.body);
+    const { order_id } = req.params;
+    const updated = await ordersService.patchOrder(order_id, req.body);
     if (!updated) return res.status(404).json({ message: 'Order not found' });
     res.json(updated);
   } catch (err) {
@@ -90,8 +90,8 @@ async function patchOrder(req, res, next) {
 // Admin: asignación de motorizado (placeholder mientras no exista tabla drivers)
 async function assignOrder(req, res, next) {
   try {
-    const { note_id } = req.params;
-    const data = await ordersService.assignOrder(note_id, req.body);
+    const { order_id } = req.params;
+    const data = await ordersService.assignOrder(order_id, req.body);
     if (!data) return res.status(404).json({ message: 'Order not found' });
     res.json(data);
   } catch (err) {
@@ -102,9 +102,9 @@ async function assignOrder(req, res, next) {
 // Admin: cambio de estado por estado destino
 async function setOrderStatus(req, res, next) {
   try {
-    const { note_id } = req.params;
+    const { order_id } = req.params;
     const { status } = req.body;
-    const data = await ordersService.setOrderStatus(note_id, status);
+    const data = await ordersService.setOrderStatus(order_id, status);
     if (!data) return res.status(404).json({ message: 'Order not found' });
     res.json(data);
   } catch (err) {

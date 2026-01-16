@@ -3,8 +3,8 @@
 const { ZONES_TABLE, ZonesSchema } = require('../models/zones_model.cjs');
 const { THRESHOLDS_TABLE, ThresholdsSchema } = require('../models/thresholds_model.cjs');
 const { MANAGERS_TABLE, ManagersSchema } = require('../models/managers_model.cjs');
-const { NOTES_TABLE, NotesSchema } = require('../models/notes_model.cjs');
-const { NOTE_ITEMS_TABLE, NoteItemsSchema } = require('../models/note_items_model.cjs');
+const { NOTES_TABLE, NotesSchema } = require('../models/order_model.cjs');
+const { NOTE_ITEMS_TABLE, NoteItemsSchema } = require('../models/order_items_model.cjs');
 const { LOGS_TABLE, LogsSchema } = require('../models/logs_model.cjs');
 
 /** @type {import('sequelize-cli').Migration} */

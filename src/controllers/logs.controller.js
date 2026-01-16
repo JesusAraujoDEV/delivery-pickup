@@ -23,12 +23,12 @@ async function get(req, res, next) {
   }
 }
 
-// GET /api/dp/v1/logs/by-note/:note_id
-async function listByNote(req, res, next) {
+// GET /api/dp/v1/logs/by-order/:order_id
+async function listByOrder(req, res, next) {
   try {
-    const { note_id } = req.params;
+    const { order_id } = req.params;
     const { limit, offset } = req.query || {};
-    const data = await logsService.listByNote(note_id, { limit, offset });
+    const data = await logsService.listByOrder(order_id, { limit, offset });
     res.json(data);
   } catch (err) {
     next(err);
@@ -49,6 +49,6 @@ async function search(req, res, next) {
 export default {
   list,
   get,
-  listByNote,
+  listByOrder,
   search,
 };

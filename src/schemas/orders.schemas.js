@@ -1,9 +1,5 @@
 import Joi from 'joi';
 
-export const noteIdParamSchema = Joi.object({
-  note_id: Joi.string().guid({ version: ['uuidv4'] }).required(),
-});
-
 export const orderIdParamSchema = Joi.object({
   id: Joi.alternatives()
     .try(
@@ -37,7 +33,7 @@ export const patchOrderSchema = Joi.object({
     address: Joi.string().allow('', null).optional(),
   }).optional(),
   zone_id: Joi.string().guid({ version: ['uuidv4'] }).allow(null).optional(),
-  // también permitimos editar campos directos (si el frontend manda la forma “Notes”)
+  // también permitimos editar campos directos (si el frontend manda la forma “Orders”)
   customer_name: Joi.string().optional(),
   customer_phone: Joi.string().optional(),
   customer_email: Joi.string().email().allow(null, '').optional(),
@@ -52,7 +48,7 @@ export const assignOrderSchema = Joi.object({
   // Placeholder: en este proyecto no hay tabla drivers.
   // Usamos manager_id para registrar en logs quién hizo la asignación.
   manager_id: Joi.string().guid({ version: ['uuidv4'] }).optional(),
-  note: Joi.string().max(500).optional(),
+  order_id: Joi.string().max(500).optional(),
 }).min(1);
 
 export const orderItemSchema = Joi.object({
@@ -145,7 +141,7 @@ export const VALID_TRANSITIONS = {
   CANCELLED: [],
 };
 
-// Para endpoint PATCH /orders/{note_id}/status
+// Para endpoint PATCH /orders/{order_id}/status
 export const setOrderStatusSchema = Joi.object({
   status: Joi.string()
     .valid('PENDING_REVIEW', 'IN_KITCHEN', 'READY_FOR_DISPATCH', 'EN_ROUTE', 'DELIVERED', 'CANCELLED')

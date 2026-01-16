@@ -19,11 +19,11 @@ function buildTimestampRange(from, to) {
 }
 
 async function list({ limit = 50, offset = 0 } = {}) {
-  const { Logs, Managers, Notes } = getModels();
+  const { Logs, Managers, Orders } = getModels();
   const rows = await Logs.findAll({
     include: [
       { model: Managers, as: 'manager', required: false },
-      { model: Notes, as: 'note', required: false },
+      { model: Orders, as: 'order', required: false },
     ],
     order: [['timestamp_transition', 'DESC']],
     limit,
@@ -33,20 +33,20 @@ async function list({ limit = 50, offset = 0 } = {}) {
 }
 
 async function getById(log_id) {
-  const { Logs, Managers, Notes } = getModels();
+  const { Logs, Managers, Orders } = getModels();
   const row = await Logs.findByPk(log_id, {
     include: [
       { model: Managers, as: 'manager', required: false },
-      { model: Notes, as: 'note', required: false },
+      { model: Orders, as: 'order', required: false },
     ],
   });
   return row;
 }
 
-async function listByNote(note_id, { limit = 200, offset = 0 } = {}) {
+async function listByOrder(order_id, { limit = 200, offset = 0 } = {}) {
   const { Logs, Managers } = getModels();
   const rows = await Logs.findAll({
-    where: { note_id },
+    where: { order_id },
     include: [{ model: Managers, as: 'manager', required: false }],
     order: [['timestamp_transition', 'ASC']],
     limit,
@@ -56,7 +56,7 @@ async function listByNote(note_id, { limit = 200, offset = 0 } = {}) {
 }
 
 async function search({ status, manager_id, from, to, limit = 50, offset = 0 } = {}) {
-  const { Logs, Managers, Notes } = getModels();
+  const { Logs, Managers, Orders } = getModels();
 
   const where = {};
   if (status) where.status_to = status;
@@ -69,7 +69,7 @@ async function search({ status, manager_id, from, to, limit = 50, offset = 0 } =
     where,
     include: [
       { model: Managers, as: 'manager', required: false },
-      { model: Notes, as: 'note', required: false },
+      { model: Orders, as: 'order', required: false },
     ],
     order: [['timestamp_transition', 'DESC']],
     limit,
@@ -82,6 +82,6 @@ async function search({ status, manager_id, from, to, limit = 50, offset = 0 } =
 export default {
   list,
   getById,
-  listByNote,
+  listByOrder,
   search,
 };

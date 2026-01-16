@@ -8,21 +8,21 @@ function calcSubtotal({ quantity, unit_price }) {
   return Math.round(subtotal * 100) / 100;
 }
 
-export async function listForNote(note_id) {
-  const { NoteItems } = getModels();
-  return NoteItems.findAll({ where: { note_id } });
+export async function listForOrder(order_id) {
+  const { OrderIItems } = getModels();
+  return OrderItems.findAll({ where: { order_id } });
 }
 
-export async function createForNote(note_id, payload) {
-  const { NoteItems } = getModels();
+export async function createForOrder(order_id, payload) {
+  const { OrderItems } = getModels();
   const item_id = randomUUID();
   const quantity = payload.quantity;
   const unit_price = payload.unit_price;
   const subtotal = payload.subtotal ?? calcSubtotal({ quantity, unit_price });
 
-  const record = await NoteItems.create({
+  const record = await OrderItems.create({
     item_id,
-    note_id,
+    order_id,
     ...payload,
     subtotal,
   });
@@ -30,8 +30,8 @@ export async function createForNote(note_id, payload) {
 }
 
 export async function patch(item_id, payload) {
-  const { NoteItems } = getModels();
-  const record = await NoteItems.findByPk(item_id);
+  const { OrderItems } = getModels();
+  const record = await OrderItems.findByPk(item_id);
   if (!record) return null;
 
   const next = { ...payload };
@@ -46,11 +46,11 @@ export async function patch(item_id, payload) {
 }
 
 export async function remove(item_id) {
-  const { NoteItems } = getModels();
-  const record = await NoteItems.findByPk(item_id);
+  const { OrderItems } = getModels();
+  const record = await OrderItems.findByPk(item_id);
   if (!record) return null;
   await record.destroy();
   return true;
 }
 
-export default { listForNote, createForNote, patch, remove };
+export default { listForOrder, createForOrder, patch, remove };

@@ -4,8 +4,8 @@ export const logIdParamSchema = Joi.object({
   log_id: Joi.string().guid({ version: ['uuidv4'] }).required(),
 });
 
-export const noteIdParamSchema = Joi.object({
-  note_id: Joi.string().guid({ version: ['uuidv4'] }).required(),
+export const orderIdParamSchema = Joi.object({
+  order_id: Joi.string().guid({ version: ['uuidv4'] }).required(),
 });
 
 export const logsSearchQuerySchema = Joi.object({

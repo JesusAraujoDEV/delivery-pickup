@@ -1,20 +1,20 @@
 const { Model, DataTypes } = require('sequelize');
-const { NOTES_TABLE } = require('./notes_model.cjs');
+const { ORDERS_TABLE } = require('./order_model.cjs');
 
-const NOTE_ITEMS_TABLE = 'dp_order_items';
+const ORDER_ITEMS_TABLE = 'dp_order_items';
 
-const NoteItemsSchema = {
+const OrderItemsSchema = {
   item_id: {
     allowNull: false,
     primaryKey: true,
     type: DataTypes.UUID,
   },
-  note_id: {
+  order_id: {
     allowNull: false,
     type: DataTypes.UUID,
     references: {
-      model: NOTES_TABLE,
-      key: 'note_id',
+      model: ORDERS_TABLE,
+      key: 'order_id',
     },
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -41,20 +41,20 @@ const NoteItemsSchema = {
   },
 };
 
-class NoteItems extends Model {
+class OrderItems extends Model {
   static associate(models) {
-    this.belongsTo(models.Notes, { as: 'note', foreignKey: 'note_id' });
+    this.belongsTo(models.Orders, { as: 'order', foreignKey: 'order_id' });
   }
 
   static config(sequelize) {
     return {
       sequelize,
-      tableName: NOTE_ITEMS_TABLE,
-      modelName: 'NoteItems',
+      tableName: ORDER_ITEMS_TABLE,
+      modelName: 'OrderItems',
       timestamps: false,
       underscored: true,
     };
   }
 }
 
-module.exports = { NOTE_ITEMS_TABLE, NoteItemsSchema, NoteItems };
+module.exports = { ORDER_ITEMS_TABLE, OrderItemsSchema, OrderItems };

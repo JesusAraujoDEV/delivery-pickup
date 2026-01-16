@@ -28,7 +28,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/NoteOrderListItem'
+                  $ref: '#/components/schemas/OrderListItem'
     post:
       tags: [Orders]
       summary: Crear orden
@@ -70,7 +70,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/NoteOrderListItem'
+                  $ref: '#/components/schemas/OrderListItem'
 
   /api/dp/v1/orders/status/{status}:
     get:
@@ -98,9 +98,9 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/NoteOrderListItem'
+                  $ref: '#/components/schemas/OrderListItem'
 
-  /api/dp/v1/orders/{note_id}/status:
+  /api/dp/v1/orders/{order_id}/status:
     patch:
       tags: [Orders]
       summary: Cambiar estado de una orden (recomendado)
@@ -117,7 +117,7 @@ paths:
         - CANCELLED -> (terminal)
       parameters:
         - in: path
-          name: note_id
+          name: order_id
           required: true
           schema:
             type: string
@@ -136,7 +136,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  note_id:
+                  order_id:
                     type: string
                     format: uuid
                   readable_id:
@@ -167,17 +167,17 @@ paths:
         '404':
           description: Orden no encontrada
 
-  /api/dp/v1/orders/{id}:
+  /api/dp/v1/orders/{order_id}:
     get:
       tags: [Orders]
       summary: Detalle completo de una orden (UUID o DL-####)
       description: |
         Permite consultar el detalle por:
-        - `note_id` (UUIDv4)
+        - `order_id` (UUIDv4)
         - `readable_id` (ej: DL-8095)
       parameters:
         - in: path
-          name: id
+          name: order_id
           required: true
           schema:
             oneOf:
@@ -202,7 +202,7 @@ paths:
       summary: Corregir datos de la orden
       parameters:
         - in: path
-          name: id
+          name: order_id
           required: true
           schema:
             type: string
@@ -225,13 +225,13 @@ paths:
         '404':
           description: Orden no encontrada
 
-  /api/dp/v1/orders/{note_id}/assign:
+  /api/dp/v1/orders/{order_id}/assign:
     patch:
       tags: [Orders]
       summary: Asignar motorizado (placeholder)
       parameters:
         - in: path
-          name: note_id
+          name: order_id
           required: true
           schema:
             type: string
@@ -387,7 +387,7 @@ components:
     Order:
       type: object
       properties:
-        note_id:
+        order_id:
           type: string
         readable_id:
           type: string
@@ -398,11 +398,11 @@ components:
           items:
             $ref: '#/components/schemas/OrderItem'
 
-    NoteOrderListItem:
+    OrderListItem:
       type: object
-      description: Resumen de orden (basado en dp_notes)
+      description: Resumen de orden (basado en dp_orders)
       properties:
-        note_id:
+        order_id:
           type: string
           format: uuid
         readable_id:
@@ -434,7 +434,7 @@ components:
 
     PatchOrderInput:
       type: object
-      description: Campos editables para corrección (customer y/o campos directos de notes)
+      description: Campos editables para corrección (customer y/o campos directos de orders)
       properties:
         customer:
           type: object
@@ -480,9 +480,9 @@ components:
 
     OrderDetail:
       type: object
-      description: Detalle completo (note + items + logs)
+      description: Detalle completo (order + items + logs)
       properties:
-        note_id:
+        order_id:
           type: string
           format: uuid
         readable_id:

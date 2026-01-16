@@ -32,7 +32,7 @@ npm run dev
 
 ## Base de datos
 
-Los modelos reflejan el esquema compartido (dp_notes, dp_note_items, dp_logs, etc.). `sequelize.sync()` crea tablas si no existen (solo para demo). En producción, usa migraciones.
+Los modelos reflejan el esquema compartido (dp_orders, dp_order_items, dp_logs, etc.). `sequelize.sync()` crea tablas si no existen (solo para demo). En producción, usa migraciones.
 
 ### Conexión a Postgres con SSL (CA) como en Mediart
 
@@ -75,10 +75,10 @@ npm run db:test
 - POST `/api/dp/v1/orders` → Crea orden (validación con Joi, stock simulado), guarda items y log inicial.
 - GET `/api/dp/v1/orders/{readable_id}/status` → Avanza el estado en cada consulta: PENDING_REVIEW → IN_KITCHEN → READY_FOR_DISPATCH → EN_ROUTE → DELIVERED.
 - GET `/api/dp/v1/dashboard/orders` → Lista agrupada por estado.
-- POST `/api/dp/v1/orders/{note_id}/approve` → Cambia a IN_KITCHEN y simula POST a Cocina.
-- POST `/api/dp/v1/orders/{note_id}/cancel` → Cancela.
-- PUT `/api/dp/v1/orders/{note_id}/dispatch` → EN_ROUTE.
-- PUT `/api/dp/v1/orders/{note_id}/close` → DELIVERED.
+- POST `/api/dp/v1/orders/{order_id}/approve` → Cambia a IN_KITCHEN y simula POST a Cocina.
+- POST `/api/dp/v1/orders/{order_id}/cancel` → Cancela.
+- PUT `/api/dp/v1/orders/{order_id}/dispatch` → EN_ROUTE.
+- PUT `/api/dp/v1/orders/{order_id}/close` → DELIVERED.
 - POST `/api/dp/v1/webhooks/kitchen/ready` → Webhook que marca READY_FOR_DISPATCH y notifica (simulado).
 - GET `/api/dp/v1/reports/export` → CSV con resumen de notas.
 

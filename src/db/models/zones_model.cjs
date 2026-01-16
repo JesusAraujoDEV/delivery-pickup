@@ -30,7 +30,7 @@ const ZonesSchema = {
 
 class Zones extends Model {
   static associate(models) {
-    this.hasMany(models.Notes, { as: 'notes', foreignKey: 'zone_id' });
+    this.hasMany(models.Orders, { as: 'orders', foreignKey: 'zone_id' });
   }
 
   static config(sequelize) {

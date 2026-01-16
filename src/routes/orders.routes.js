@@ -8,7 +8,6 @@ import {
 	validateQuery,
 	createOrderSchema,
 	kitchenLikeCreateOrderSchema,
-	noteIdParamSchema,
 	orderIdParamSchema,
 	orderStatusParamSchema,
 	listOrdersQuerySchema,
@@ -35,12 +34,12 @@ router.post(
 	ctrl.createOrder
 );
 
-// Estado por destino (note_id) - endpoint único
-router.patch('/:note_id/status', validateParams(noteIdParamSchema), validate(setOrderStatusSchema), ctrl.setOrderStatus);
+// Estado por destino (order_id) - endpoint único
+router.patch('/:order_id/status', validateParams(orderIdParamSchema), validate(setOrderStatusSchema), ctrl.setOrderStatus);
 
 // Admin: detalle / edición / asignación
 router.get('/:id', validateParams(orderIdParamSchema), ctrl.getOrderDetailFlexible);
-router.patch('/:note_id', authorize('Notes_dp', 'Update'), validateParams(noteIdParamSchema), validate(patchOrderSchema), ctrl.patchOrder);
-router.patch('/:note_id/assign', authorize('Logs_dp', 'Create'), validateParams(noteIdParamSchema), validate(assignOrderSchema), ctrl.assignOrder);
+router.patch('/:order_id', authorize('Orders_dp', 'Update'), validateParams(orderIdParamSchema), validate(patchOrderSchema), ctrl.patchOrder);
+router.patch('/:order_id/assign', authorize('Logs_dp', 'Create'), validateParams(orderIdParamSchema), validate(assignOrderSchema), ctrl.assignOrder);
 
 export default router;

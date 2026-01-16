@@ -1,10 +1,10 @@
 const { Model, DataTypes, Sequelize } = require('sequelize');
 const { ZONES_TABLE } = require('./zones_model.cjs');
 
-const NOTES_TABLE = 'dp_orders';
+const ORDERS_TABLE = 'dp_orders';
 
-const NotesSchema = {
-  note_id: {
+const OrdersSchema = {
+  order_id: {
     allowNull: false,
     primaryKey: true,
     type: DataTypes.UUID,
@@ -83,22 +83,22 @@ const NotesSchema = {
   },
 };
 
-class Notes extends Model {
+class Orders extends Model {
   static associate(models) {
     this.belongsTo(models.Zones, { as: 'zone', foreignKey: 'zone_id' });
-    this.hasMany(models.NoteItems, { as: 'items', foreignKey: 'note_id' });
-    this.hasMany(models.Logs, { as: 'logs', foreignKey: 'note_id' });
+    this.hasMany(models.OrderItems, { as: 'items', foreignKey: 'order_id' });
+    this.hasMany(models.Logs, { as: 'logs', foreignKey: 'order_id' });
   }
 
   static config(sequelize) {
     return {
       sequelize,
-      tableName: NOTES_TABLE,
-      modelName: 'Notes',
+      tableName: ORDERS_TABLE,
+      modelName: 'Orders',
       timestamps: false,
       underscored: true,
     };
   }
 }
 
-module.exports = { NOTES_TABLE, NotesSchema, Notes };
+module.exports = { ORDERS_TABLE, OrdersSchema, Orders };

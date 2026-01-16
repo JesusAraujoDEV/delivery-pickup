@@ -1,5 +1,5 @@
 const { Model, DataTypes, Sequelize } = require('sequelize');
-const { NOTES_TABLE } = require('./notes_model.cjs');
+const { ORDERS_TABLE } = require('./order_model.cjs');
 const { MANAGERS_TABLE } = require('./managers_model.cjs');
 
 const LOGS_TABLE = 'dp_logs';
@@ -10,12 +10,12 @@ const LogsSchema = {
     primaryKey: true,
     type: DataTypes.UUID,
   },
-  note_id: {
+  order_id: {
     allowNull: false,
     type: DataTypes.UUID,
     references: {
-      model: NOTES_TABLE,
-      key: 'note_id',
+      model: ORDERS_TABLE,
+      key: 'order_id',
     },
     onUpdate: 'CASCADE',
     onDelete: 'CASCADE',
@@ -51,7 +51,7 @@ const LogsSchema = {
 
 class Logs extends Model {
   static associate(models) {
-    this.belongsTo(models.Notes, { as: 'note', foreignKey: 'note_id' });
+    this.belongsTo(models.Orders, { as: 'order', foreignKey: 'order_id' });
     this.belongsTo(models.Managers, { as: 'manager', foreignKey: 'manager_id' });
   }
 

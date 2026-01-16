@@ -5,7 +5,7 @@ import {
   validateParams,
   validateQuery,
   logIdParamSchema,
-  noteIdParamSchema,
+  orderIdParamSchema,
   logsSearchQuerySchema,
 } from '../schemas/logs.schemas.js';
 
@@ -18,7 +18,7 @@ router.get('/logs', validateQuery(logsSearchQuerySchema), controller.list);
 router.get('/logs/search', validateQuery(logsSearchQuerySchema), controller.search);
 
 // Historia de una orden
-router.get('/logs/by-note/:note_id', validateParams(noteIdParamSchema), validateQuery(logsSearchQuerySchema), controller.listByNote);
+router.get('/logs/by-order/:order_id', validateParams(orderIdParamSchema), validateQuery(logsSearchQuerySchema), controller.listByOrder);
 
 // Detalle
 router.get('/logs/:log_id', validateParams(logIdParamSchema), controller.get);

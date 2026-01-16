@@ -11,7 +11,7 @@ function generateReadableId() {
 }
 
 async function createOrder(payload) {
-  const { Notes, NoteItems, Logs, Zones } = getModels();
+  const { Orders, OrderItems, Logs, Zones } = getModels();
 
   // Support two input shapes:
   // 1) DP shape: { service_type, zone_id, customer:{...}, items:[{product_id,product_name,quantity,unit_price}], shipping_cost? }
@@ -140,9 +140,9 @@ async function createOrder(payload) {
     kitchenOrderRes?.externalOrderId ??
     externalOrderId;
 
-  const noteId = randomUUID();
-  const note = await Notes.create({
-    note_id: noteId,
+  const orderId = randomUUID();
+  const order = await Orders.create({
+    order_id: orderId,
     readable_id,
     order_source_id: String(kitchenOrderId),
     customer_name: dpPayload.customer.name,
@@ -158,43 +158,43 @@ async function createOrder(payload) {
 
   const itemsToCreate = dpPayload.items.map((it) => ({
     item_id: randomUUID(),
-    note_id: note.note_id,
+    order_id: order.order_id,
     product_name: it.product_name,
     quantity: it.quantity,
     unit_price: it.unit_price,
     subtotal: (Number(it.unit_price) * Number(it.quantity)).toFixed(2),
     notes: it.notes ?? null,
   }));
-  await NoteItems.bulkCreate(itemsToCreate);
+  await OrderItems.bulkCreate(itemsToCreate);
 
-  await Logs.create({ log_id: randomUUID(), note_id: note.note_id, status_from: null, status_to: 'PENDING_REVIEW' });
+  await Logs.create({ log_id: randomUUID(), order_id: order.order_id, status_from: null, status_to: 'PENDING_REVIEW' });
 
-  return { note_id: note.note_id, readable_id, status: note.current_status };
+  return { order_id: order.order_id, readable_id, status: order.current_status };
 }
 
 async function webhookKitchenReady(readable_id) {
-  const { Notes, Logs } = getModels();
-  const note = await Notes.findOne({ where: { readable_id } });
-  if (!note) return null;
-  const prev = note.current_status;
-  await note.update({ current_status: 'READY_FOR_DISPATCH', timestamp_ready: new Date() });
-  await Logs.create({ log_id: randomUUID(), note_id: note.note_id, status_from: prev, status_to: 'READY_FOR_DISPATCH' });
+  const { Orders, Logs } = getModels();
+  const order = await Orders.findOne({ where: { readable_id } });
+  if (!order) return null;
+  const prev = order.current_status;
+  await order.update({ current_status: 'READY_FOR_DISPATCH', timestamp_ready: new Date() });
+  await Logs.create({ log_id: randomUUID(), order_id: order.order_id, status_from: prev, status_to: 'READY_FOR_DISPATCH' });
   console.log(`[SIM] Notify customer for ${readable_id}: READY_FOR_DISPATCH`);
-  return { readable_id: note.readable_id, status: 'READY_FOR_DISPATCH' };
+  return { readable_id: order.readable_id, status: 'READY_FOR_DISPATCH' };
 }
 
 /**
  * Admin: cambio de estado por estado destino.
  * Actualiza timestamps según el status destino y registra log.
  */
-async function setOrderStatus(note_id, status_to) {
-  const { Notes, Logs } = getModels();
-  const note = await Notes.findByPk(note_id);
-  if (!note) return null;
+async function setOrderStatus(order_id, status_to) {
+  const { Orders, Logs } = getModels();
+  const order = await Orders.findByPk(order_id);
+  if (!order) return null;
 
-  const status_from = note.current_status;
+  const status_from = order.current_status;
   if (status_from === status_to) {
-    return { note_id: note.note_id, readable_id: note.readable_id, status: note.current_status };
+    return { order_id: order.order_id, readable_id: order.readable_id, status: order.current_status };
   }
 
   const allowedNext = VALID_TRANSITIONS?.[status_from] ?? [];
@@ -212,15 +212,15 @@ async function setOrderStatus(note_id, status_to) {
   if (status_to === 'EN_ROUTE') timestamps.timestamp_dispatched = now;
   if (status_to === 'DELIVERED') timestamps.timestamp_closure = now;
 
-  await note.update({ current_status: status_to, ...timestamps });
-  await Logs.create({ log_id: randomUUID(), note_id: note.note_id, status_from, status_to });
+  await order.update({ current_status: status_to, ...timestamps });
+  await Logs.create({ log_id: randomUUID(), order_id: order.order_id, status_from, status_to });
 
-  return { note_id: note.note_id, readable_id: note.readable_id, status: status_to };
+  return { order_id: order.order_id, readable_id: order.readable_id, status: status_to };
 }
 
 async function listOrdersByStatus() {
-  const { Notes } = getModels();
-  const notes = await Notes.findAll({ order: [['timestamp_creation', 'DESC']] });
+  const { Orders } = getModels();
+  const orders = await Orders.findAll({ order: [['timestamp_creation', 'DESC']] });
   const columns = {
     PENDING_REVIEW: [],
     IN_KITCHEN: [],
@@ -229,14 +229,14 @@ async function listOrdersByStatus() {
     DELIVERED: [],
     CANCELLED: [],
   };
-  for (const n of notes) {
-    (columns[n.current_status] || (columns[n.current_status] = [])).push({
-      note_id: n.note_id,
-      readable_id: n.readable_id,
-      customer_name: n.customer_name,
-      service_type: n.service_type,
-      current_status: n.current_status,
-      created_at: n.timestamp_creation,
+  for (const o of orders) {
+    (columns[o.current_status] || (columns[o.current_status] = [])).push({
+      order_id: o.order_id,
+      readable_id: o.readable_id,
+      customer_name: o.customer_name,
+      service_type: o.service_type,
+      current_status: o.current_status,
+      created_at: o.timestamp_creation,
     });
   }
   return columns;
@@ -249,7 +249,7 @@ async function listOrdersByStatus() {
  * - date: 'today' o 'YYYY-MM-DD' (usa timestamp_creation)
  */
 async function listOrders(filters = {}) {
-  const { Notes } = getModels();
+  const { Orders } = getModels();
   const where = {};
 
   if (filters.status) {
@@ -277,8 +277,8 @@ async function listOrders(filters = {}) {
     }
   }
 
-  const notes = await Notes.findAll({ where, order: [['timestamp_creation', 'DESC']] });
-  return notes;
+  const orders = await Orders.findAll({ where, order: [['timestamp_creation', 'DESC']] });
+  return orders;
 }
 
 /**
@@ -287,7 +287,7 @@ async function listOrders(filters = {}) {
  * @param {{ date?: string }} filters
  */
 async function listActiveOrders(filters = {}) {
-  const { Notes } = getModels();
+  const { Orders } = getModels();
   const where = {
     current_status: { [Op.notIn]: ['CANCELLED', 'DELIVERED'] },
   };
@@ -312,25 +312,25 @@ async function listActiveOrders(filters = {}) {
     }
   }
 
-  const notes = await Notes.findAll({ where, order: [['timestamp_creation', 'DESC']] });
-  return notes;
+  const orders = await Orders.findAll({ where, order: [['timestamp_creation', 'DESC']] });
+  return orders;
 }
 
 /**
  * Admin: detalle completo de una orden.
  * Incluye items, logs y zona (si existe).
  */
-async function getOrderDetail(note_id) {
-  const { Notes, NoteItems, Logs, Zones, Managers } = getModels();
-  const note = await Notes.findByPk(note_id, {
+async function getOrderDetail(order_id) {
+  const { Orders, OrderItems, Logs, Zones, Managers } = getModels();
+  const order = await Orders.findByPk(order_id, {
     include: [
-      { model: NoteItems, as: 'items' },
+      { model: OrderItems, as: 'items' },
       { model: Logs, as: 'logs', include: [{ model: Managers, as: 'manager' }] },
       { model: Zones, as: 'zone', required: false },
     ],
     order: [[{ model: Logs, as: 'logs' }, 'timestamp_transition', 'ASC']],
   });
-  return note;
+  return order;
 }
 
 /**
@@ -338,29 +338,29 @@ async function getOrderDetail(note_id) {
  * Útil cuando el cliente/externo maneja un ID legible (ej: DL-1234).
  */
 async function getOrderDetailByReadableId(readable_id) {
-  const { Notes, NoteItems, Logs, Zones, Managers } = getModels();
-  const note = await Notes.findOne({
+  const { Orders, OrderItems, Logs, Zones, Managers } = getModels();
+  const order = await Orders.findOne({
     where: { readable_id },
     include: [
-      { model: NoteItems, as: 'items' },
+      { model: OrderItems, as: 'items' },
       { model: Logs, as: 'logs', include: [{ model: Managers, as: 'manager' }] },
       { model: Zones, as: 'zone', required: false },
     ],
     order: [[{ model: Logs, as: 'logs' }, 'timestamp_transition', 'ASC']],
   });
-  return note;
+  return order;
 }
 
 /**
  * Admin: correcciones de datos de la orden.
- * Modifica campos editables en Notes.
+ * Modifica campos editables en Orders.
  */
-async function patchOrder(note_id, payload) {
-  const { Notes } = getModels();
-  const note = await Notes.findByPk(note_id);
-  if (!note) return null;
-  await note.update(payload);
-  return note;
+async function patchOrder(order_id, payload) {
+  const { Orders } = getModels();
+  const order = await Orders.findByPk(order_id);
+  if (!order) return null;
+  await order.update(payload);
+  return order;
 }
 
 /**
@@ -368,26 +368,26 @@ async function patchOrder(note_id, payload) {
  * Nota: No existe tabla/campo de drivers en este proyecto aún.
  * Como fallback, registramos la asignación como un log (manager_id) y opcionalmente un texto.
  */
-async function assignOrder(note_id, payload) {
-  const { Notes, Logs } = getModels();
-  const note = await Notes.findByPk(note_id);
-  if (!note) return null;
+async function assignOrder(order_id, payload) {
+  const { Orders, Logs } = getModels();
+  const order = await Orders.findByPk(order_id);
+  if (!order) return null;
 
-  const prev = note.current_status;
+  const prev = order.current_status;
 
   // No cambiamos estado por defecto (no estaba definido un status de "ASSIGNED").
   // Si luego se agrega, esto puede evolucionar.
 
   await Logs.create({
     log_id: randomUUID(),
-    note_id: note.note_id,
+    order_id: order.order_id,
     manager_id: payload.manager_id || null,
     status_from: prev,
     status_to: prev,
     cancellation_reason: payload.note || null,
   });
 
-  return { note_id: note.note_id, readable_id: note.readable_id, assigned_to: payload.manager_id || null };
+  return { order_id: order.order_id, readable_id: order.readable_id, assigned_to: payload.manager_id || null };
 }
 
 export default {

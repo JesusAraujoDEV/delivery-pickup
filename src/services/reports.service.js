@@ -2,9 +2,9 @@ import { getModels } from '../models/index.js';
 import { stringify } from 'csv-stringify';
 
 async function exportCsv() {
-  const { Notes } = getModels();
-  const notes = await Notes.findAll();
-  const rows = notes.map(n => ({
+  const { Orders } = getModels();
+  const orders = await Orders.findAll();
+  const rows = orders.map(n => ({
     readable_id: n.readable_id,
     service_type: n.service_type,
     status: n.current_status,
