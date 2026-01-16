@@ -1,7 +1,7 @@
 const { Model, DataTypes } = require('sequelize');
 const { NOTES_TABLE } = require('./notes_model.cjs');
 
-const NOTE_ITEMS_TABLE = 'dp_note_items';
+const NOTE_ITEMS_TABLE = 'dp_order_items';
 
 const NoteItemsSchema = {
   item_id: {

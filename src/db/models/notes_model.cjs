@@ -1,7 +1,7 @@
 const { Model, DataTypes, Sequelize } = require('sequelize');
 const { ZONES_TABLE } = require('./zones_model.cjs');
 
-const NOTES_TABLE = 'dp_notes';
+const NOTES_TABLE = 'dp_orders';
 
 const NotesSchema = {
   note_id: {
