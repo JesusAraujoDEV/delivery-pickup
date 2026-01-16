@@ -1,13 +1,13 @@
 import Joi from 'joi';
 
 export const orderIdParamSchema = Joi.object({
-  id: Joi.alternatives()
-    .try(
-      Joi.string().guid({ version: ['uuidv4'] }),
-      Joi.string().pattern(/^DL-\d+$/)
-    )
-    .required(),
-});
+  // Algunos endpoints usan :id (detalle flexible) y otros :order_id (UUID estrictamente)
+  // Para evitar drift entre rutas/Swagger, aceptamos cualquiera de los dos.
+  id: Joi.alternatives().try(Joi.string().guid({ version: ['uuidv4'] }), Joi.string().pattern(/^DL-\d+$/)),
+  order_id: Joi.alternatives().try(Joi.string().guid({ version: ['uuidv4'] }), Joi.string().pattern(/^DL-\d+$/)),
+})
+  .xor('id', 'order_id')
+  .required();
 
 export const listOrdersQuerySchema = Joi.object({
   status: Joi.string()

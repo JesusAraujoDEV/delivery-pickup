@@ -9,7 +9,7 @@ function calcSubtotal({ quantity, unit_price }) {
 }
 
 export async function listForOrder(order_id) {
-  const { OrderIItems } = getModels();
+  const { OrderItems } = getModels();
   return OrderItems.findAll({ where: { order_id } });
 }
 
