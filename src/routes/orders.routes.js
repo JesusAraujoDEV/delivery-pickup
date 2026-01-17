@@ -39,7 +39,7 @@ router.patch('/:order_id/status', validateParams(orderIdParamSchema), validate(s
 
 // Admin: detalle / edición / asignación
 router.get('/:id', validateParams(orderIdParamSchema), ctrl.getOrderDetailFlexible);
-router.patch('/:order_id', authorize('Orders_dp', 'Update'), validateParams(orderIdParamSchema), validate(patchOrderSchema), ctrl.patchOrder);
+router.patch('/:order_id', authorize('Notes_dp', 'Update'), validateParams(orderIdParamSchema), validate(patchOrderSchema), ctrl.patchOrder);
 router.patch('/:order_id/assign', authorize('Logs_dp', 'Create'), validateParams(orderIdParamSchema), validate(assignOrderSchema), ctrl.assignOrder);
 
 export default router;
