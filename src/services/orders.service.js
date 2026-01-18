@@ -2,6 +2,7 @@ import { getModels } from '../models/index.js';
 import { randomUUID } from 'crypto';
 import { Op } from 'sequelize';
 import { VALID_TRANSITIONS } from '../schemas/orders.schemas.js';
+import { sequelize } from '../config/sequelize.js';
 import {
   cancelKitchenOrder,
   createKitchenOrder,
@@ -137,7 +138,7 @@ async function createOrder(payload) {
   const readable_id = generateReadableId();
 
   // Importante: ya no inyectamos en Cocina al crear.
-  // La inyección se hace cuando el admin cambia el status a READY_FOR_DISPATCH.
+  // La inyección se hace cuando el admin cambia el status a IN_KITCHEN.
 
   const orderId = randomUUID();
   const order = await Orders.create({
@@ -189,34 +190,45 @@ async function setOrderStatus(order_id, status_to) {
   const { Orders, OrderItems, Logs } = getModels();
 
   const isReadable = typeof order_id === 'string' && /^DL-\d+$/i.test(order_id);
-  const order = isReadable
-    ? await Orders.findOne({ where: { readable_id: order_id } })
-    : await Orders.findByPk(order_id);
-  if (!order) return null;
+  return await sequelize.transaction(async (transaction) => {
+    const order = isReadable
+      ? await Orders.findOne({ where: { readable_id: order_id }, transaction, lock: transaction.LOCK.UPDATE })
+      : await Orders.findByPk(order_id, { transaction, lock: transaction.LOCK.UPDATE });
+    if (!order) return null;
 
-  const status_from = order.current_status;
-  if (status_from === status_to) {
-    return { order_id: order.order_id, readable_id: order.readable_id, status: order.current_status };
-  }
+    const status_from = order.current_status;
+    if (status_from === status_to) {
+      // Idempotencia + backfill: si la orden ya está CANCELLED/DELIVERED pero no tiene timestamp_closure,
+      // lo completamos usando el primer log correspondiente.
+      if ((status_to === 'CANCELLED' || status_to === 'DELIVERED') && !order.timestamp_closure) {
+        const firstClosureLog = await Logs.findOne({
+          where: { order_id: order.order_id, status_to },
+          order: [['timestamp_transition', 'ASC']],
+          transaction,
+        });
+        await order.update({ timestamp_closure: firstClosureLog?.timestamp_transition ?? new Date() }, { transaction });
+      }
+      return { order_id: order.order_id, readable_id: order.readable_id, status: order.current_status };
+    }
 
-  const allowedNext = VALID_TRANSITIONS?.[status_from] ?? [];
-  if (!allowedNext.includes(status_to)) {
-    const err = new Error(`Invalid status transition: ${status_from} -> ${status_to}`);
-    err.statusCode = 400;
-    err.details = { from: status_from, to: status_to, allowed: allowedNext };
-    throw err;
-  }
+    const allowedNext = VALID_TRANSITIONS?.[status_from] ?? [];
+    if (!allowedNext.includes(status_to)) {
+      const err = new Error(`Invalid status transition: ${status_from} -> ${status_to}`);
+      err.statusCode = 400;
+      err.details = { from: status_from, to: status_to, allowed: allowedNext };
+      throw err;
+    }
 
-  // Si está en cocina y se cancela, también cancelamos en Cocina.
-  // Si falla, no cambiamos el status en DP (controller devuelve 502).
-  if (status_from === 'IN_KITCHEN' && status_to === 'CANCELLED') {
-    await cancelKitchenOrder(String(order.order_id));
-  }
+    // Si está en cocina y se cancela, también cancelamos en Cocina.
+    // Si falla, no cambiamos el status en DP (controller devuelve 502).
+    if (status_from === 'IN_KITCHEN' && status_to === 'CANCELLED') {
+      await cancelKitchenOrder(String(order.order_id));
+    }
 
-  // Inyección a Cocina SOLO al pasar a IN_KITCHEN.
-  // Si falla, no cambiamos el status en DP (se devuelve 502 desde el controller).
-  if (status_to === 'IN_KITCHEN') {
-    const items = await OrderItems.findAll({ where: { order_id: order.order_id } });
+    // Inyección a Cocina SOLO al pasar a IN_KITCHEN.
+    // Si falla, no cambiamos el status en DP (se devuelve 502 desde el controller).
+    if (status_to === 'IN_KITCHEN') {
+      const items = await OrderItems.findAll({ where: { order_id: order.order_id }, transaction });
 
     // Como se canceló la columna product_id en dp_order_items,
     // resolvemos productId desde el catálogo de Cocina usando product_name.
@@ -264,20 +276,22 @@ async function setOrderStatus(order_id, status_to) {
       })),
     };
 
-    await createKitchenOrder(kitchenPayload);
-  }
+      await createKitchenOrder(kitchenPayload);
+    }
 
-  const now = new Date();
-  const timestamps = {};
-  if (status_to === 'IN_KITCHEN') timestamps.timestamp_approved = now;
-  if (status_to === 'READY_FOR_DISPATCH') timestamps.timestamp_ready = now;
-  if (status_to === 'EN_ROUTE') timestamps.timestamp_dispatched = now;
-  if (status_to === 'DELIVERED') timestamps.timestamp_closure = now;
+    const now = new Date();
+    const timestamps = {};
+    if (status_to === 'IN_KITCHEN') timestamps.timestamp_approved = now;
+    if (status_to === 'READY_FOR_DISPATCH') timestamps.timestamp_ready = now;
+    if (status_to === 'EN_ROUTE') timestamps.timestamp_dispatched = now;
+    if (status_to === 'DELIVERED') timestamps.timestamp_closure = now;
+    if (status_to === 'CANCELLED') timestamps.timestamp_closure = now;
 
-  await order.update({ current_status: status_to, ...timestamps });
-  await Logs.create({ log_id: randomUUID(), order_id: order.order_id, status_from, status_to });
+    await order.update({ current_status: status_to, ...timestamps }, { transaction });
+    await Logs.create({ log_id: randomUUID(), order_id: order.order_id, status_from, status_to }, { transaction });
 
-  return { order_id: order.order_id, readable_id: order.readable_id, status: status_to };
+    return { order_id: order.order_id, readable_id: order.readable_id, status: status_to };
+  });
 }
 
 async function listOrdersByStatus() {
