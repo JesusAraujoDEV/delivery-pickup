@@ -2,7 +2,12 @@ import { getModels } from '../models/index.js';
 import { randomUUID } from 'crypto';
 import { Op } from 'sequelize';
 import { VALID_TRANSITIONS } from '../schemas/orders.schemas.js';
-import { createKitchenOrder, fetchKitchenProducts, validateOrderItemsAgainstKitchenProducts } from './kitchen.service.js';
+import {
+  cancelKitchenOrder,
+  createKitchenOrder,
+  fetchKitchenProducts,
+  validateOrderItemsAgainstKitchenProducts,
+} from './kitchen.service.js';
 
 function generateReadableId() {
   // Simple human-readable id: DL-XXXX
@@ -200,6 +205,12 @@ async function setOrderStatus(order_id, status_to) {
     err.statusCode = 400;
     err.details = { from: status_from, to: status_to, allowed: allowedNext };
     throw err;
+  }
+
+  // Si está en cocina y se cancela, también cancelamos en Cocina.
+  // Si falla, no cambiamos el status en DP (controller devuelve 502).
+  if (status_from === 'IN_KITCHEN' && status_to === 'CANCELLED') {
+    await cancelKitchenOrder(String(order.order_id));
   }
 
   // Inyección a Cocina SOLO al pasar a IN_KITCHEN.

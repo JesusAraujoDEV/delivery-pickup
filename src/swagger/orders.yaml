@@ -113,6 +113,10 @@ paths:
         Integración Cocina: al cambiar el estado a `IN_KITCHEN`, DP inyecta la orden en Cocina
         haciendo un POST a `/api/kitchen/kds/inject`. Si falla, se devuelve `502` y el estado NO se actualiza.
 
+        Integración Cocina (cancelación): si una orden está en `IN_KITCHEN` y se cambia a `CANCELLED`,
+        DP intentará cancelar también en Cocina llamando `POST /api/kitchen/kds/order/{order_id}/cancel`.
+        Si falla, se devuelve `502` y el estado NO se actualiza.
+
         Reglas de transición (VALID_TRANSITIONS):
         - PENDING_REVIEW -> IN_KITCHEN, CANCELLED
         - IN_KITCHEN -> READY_FOR_DISPATCH, CANCELLED

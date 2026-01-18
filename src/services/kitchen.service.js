@@ -49,6 +49,47 @@ export async function createKitchenOrder(payload) {
 }
 
 /**
+ * Cancela una orden en Cocina.
+ * Endpoint provisto por negocio:
+ *  POST /api/kitchen/kds/order/{order_id}/cancel
+ */
+export async function cancelKitchenOrder(orderId) {
+  const id = String(orderId || '').trim();
+  if (!id) {
+    const err = new Error('Kitchen cancel requires orderId');
+    err.statusCode = 502;
+    throw err;
+  }
+
+  const url = `${KITCHEN_BASE_URL}/kds/order/${encodeURIComponent(id)}/cancel`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    const err = new Error(`Kitchen API error (${res.status}): ${text || res.statusText}`);
+    err.statusCode = 502;
+    throw err;
+  }
+
+  const json = await res.json().catch(() => null);
+  if (!json || typeof json !== 'object') {
+    const err = new Error('Kitchen API response invalid');
+    err.statusCode = 502;
+    err.details = json;
+    throw err;
+  }
+
+  return json;
+}
+
+/**
  * Obtiene el catálogo de productos activos/inactivos desde cocina.
  * Response esperado:
  * { success: boolean, message: string, data: Array<{id,name,isActive,basePrice,...}> }
