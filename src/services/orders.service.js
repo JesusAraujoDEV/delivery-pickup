@@ -112,39 +112,13 @@ async function createOrder(payload) {
 
   const readable_id = generateReadableId();
 
-  // Create order in Kitchen first (so if it fails, we don't persist DP order)
-  const externalOrderId = isKitchenLike ? dpPayload._kitchenOrder.externalOrderId : randomUUID();
-  const kitchenOrderPayload = isKitchenLike
-    ? dpPayload._kitchenOrder
-    : {
-        externalOrderId,
-        sourceModule: 'DP_MODULE',
-        serviceMode: dpPayload.service_type === 'DELIVERY' ? 'DELIVERY' : 'PICKUP',
-        displayLabel: readable_id,
-        customerName: dpPayload.customer?.name,
-        items: (dpPayload.items || []).map((it) => ({
-          productId: String(it.product_id),
-          quantity: it.quantity,
-          notes: it.notes,
-        })),
-      };
-
-  const kitchenOrderRes = await createKitchenOrder(kitchenOrderPayload);
-  const kitchenOrderId =
-    kitchenOrderRes?.data?.id ??
-    kitchenOrderRes?.data?.orderId ??
-    kitchenOrderRes?.data?.externalOrderId ??
-    kitchenOrderRes?.data?.external_order_id ??
-    kitchenOrderRes?.id ??
-    kitchenOrderRes?.orderId ??
-    kitchenOrderRes?.externalOrderId ??
-    externalOrderId;
+  // Importante: ya no inyectamos en Cocina al crear.
+  // La inyección se hace cuando el admin cambia el status a READY_FOR_DISPATCH.
 
   const orderId = randomUUID();
   const order = await Orders.create({
     order_id: orderId,
     readable_id,
-    order_source_id: String(kitchenOrderId),
     customer_name: dpPayload.customer.name,
     customer_phone: dpPayload.customer.phone,
     customer_email: dpPayload.customer.email,
@@ -188,8 +162,12 @@ async function webhookKitchenReady(readable_id) {
  * Actualiza timestamps según el status destino y registra log.
  */
 async function setOrderStatus(order_id, status_to) {
-  const { Orders, Logs } = getModels();
-  const order = await Orders.findByPk(order_id);
+  const { Orders, OrderItems, Logs } = getModels();
+
+  const isReadable = typeof order_id === 'string' && /^DL-\d+$/i.test(order_id);
+  const order = isReadable
+    ? await Orders.findOne({ where: { readable_id: order_id } })
+    : await Orders.findByPk(order_id);
   if (!order) return null;
 
   const status_from = order.current_status;
@@ -203,6 +181,60 @@ async function setOrderStatus(order_id, status_to) {
     err.statusCode = 400;
     err.details = { from: status_from, to: status_to, allowed: allowedNext };
     throw err;
+  }
+
+  // Inyección a Cocina SOLO al pasar a IN_KITCHEN.
+  // Si falla, no cambiamos el status en DP (se devuelve 502 desde el controller).
+  if (status_to === 'IN_KITCHEN') {
+    const items = await OrderItems.findAll({ where: { order_id: order.order_id } });
+
+    // Como se canceló la columna product_id en dp_order_items,
+    // resolvemos productId desde el catálogo de Cocina usando product_name.
+    const kitchenProducts = await fetchKitchenProducts();
+    const byName = new Map(
+      (kitchenProducts || []).map((p) => [String(p.name || '').trim().toLowerCase(), p])
+    );
+
+    const resolved = [];
+    const invalid = [];
+
+    for (const it of items || []) {
+      const key = String(it.product_name || '').trim().toLowerCase();
+      const p = byName.get(key);
+      if (!p) {
+        invalid.push({ item_id: it.item_id, product_name: it.product_name, reason: 'NOT_FOUND_BY_NAME' });
+        continue;
+      }
+      if (!p.isActive) {
+        invalid.push({ item_id: it.item_id, product_name: it.product_name, reason: 'INACTIVE' });
+        continue;
+      }
+      resolved.push({ it, productId: String(p.id) });
+    }
+
+    if (invalid.length > 0) {
+      const err = new Error('Cannot inject to Kitchen: one or more items cannot be resolved by product_name');
+      err.statusCode = 400;
+      err.details = { invalidItems: invalid };
+      throw err;
+    }
+
+    const kitchenPayload = {
+      // Sin order_source_id: usamos el UUID de DP como correlación externa.
+      externalOrderId: String(order.order_id),
+      sourceModule: 'DP_MODULE',
+      serviceMode: order.service_type === 'DELIVERY' ? 'DELIVERY' : 'PICKUP',
+      displayLabel: order.readable_id,
+      customerName: order.customer_name,
+      items: resolved.map(({ it, productId }) => ({
+        productId,
+        quantity: it.quantity,
+        // Cocina valida `notes` como string (no acepta null)
+        notes: it.notes == null ? '' : String(it.notes),
+      })),
+    };
+
+    await createKitchenOrder(kitchenPayload);
   }
 
   const now = new Date();

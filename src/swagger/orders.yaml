@@ -33,8 +33,10 @@ paths:
       tags: [Orders]
       summary: Crear orden
       description: |
-        Crea la orden en DP y la inyecta en Cocina.
-        Integración Cocina: se envía un POST a `/api/kitchen/kds/inject`.
+        Crea la orden en DP.
+
+        Nota: la inyección a Cocina NO ocurre en la creación. Se realiza cuando el admin cambia el estado
+        con `PATCH /api/dp/v1/orders/{order_id}/status` hacia `IN_KITCHEN`.
       requestBody:
         required: true
         content:
@@ -108,6 +110,9 @@ paths:
       description: |
         Endpoint único para cambio de estado por destino. Reemplaza approve/cancel/dispatch/close.
 
+        Integración Cocina: al cambiar el estado a `IN_KITCHEN`, DP inyecta la orden en Cocina
+        haciendo un POST a `/api/kitchen/kds/inject`. Si falla, se devuelve `502` y el estado NO se actualiza.
+
         Reglas de transición (VALID_TRANSITIONS):
         - PENDING_REVIEW -> IN_KITCHEN, CANCELLED
         - IN_KITCHEN -> READY_FOR_DISPATCH, CANCELLED
@@ -120,8 +125,11 @@ paths:
           name: order_id
           required: true
           schema:
-            type: string
-            format: uuid
+            oneOf:
+              - type: string
+                format: uuid
+              - type: string
+                example: DL-8095
       requestBody:
         required: true
         content:
@@ -166,6 +174,18 @@ paths:
                           type: string
         '404':
           description: Orden no encontrada
+        '502':
+          description: Error al inyectar en Cocina
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: 'Kitchen API error (502): Bad Gateway'
+                  details:
+                    type: object
 
   /api/dp/v1/orders/{order_id}:
     get:

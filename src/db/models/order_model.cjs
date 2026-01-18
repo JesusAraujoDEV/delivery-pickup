@@ -14,10 +14,6 @@ const OrdersSchema = {
     type: DataTypes.STRING(20),
     unique: true,
   },
-  order_source_id: {
-    allowNull: true,
-    type: DataTypes.STRING(50),
-  },
   customer_name: {
     allowNull: false,
     type: DataTypes.STRING(100),

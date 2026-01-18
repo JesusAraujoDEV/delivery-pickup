@@ -111,6 +111,9 @@ async function setOrderStatus(req, res, next) {
     if (err?.statusCode === 400) {
       return res.status(400).json({ message: err.message, details: err.details });
     }
+    if (err?.statusCode === 502) {
+      return res.status(502).json({ message: err.message, details: err.details });
+    }
     next(err);
   }
 }
