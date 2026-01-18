@@ -10,6 +10,25 @@ function generateReadableId() {
   return `DL-${num}`;
 }
 
+function buildUtcDayRange(dateStr) {
+  const now = new Date();
+
+  if (dateStr === 'today') {
+    const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+    return { start, end };
+  }
+
+  const m = /^\d{4}-\d{2}-\d{2}$/.exec(dateStr);
+  if (!m) return null;
+  const [y, mo, d] = dateStr.split('-').map((x) => Number(x));
+  if (!y || !mo || !d) return null;
+
+  const start = new Date(Date.UTC(y, mo - 1, d));
+  const end = new Date(Date.UTC(y, mo - 1, d + 1));
+  return { start, end };
+}
+
 async function createOrder(payload) {
   const { Orders, OrderItems, Logs, Zones } = getModels();
 
@@ -289,24 +308,8 @@ async function listOrders(filters = {}) {
   }
 
   if (filters.date) {
-    const now = new Date();
-    let start;
-    let end;
-    if (filters.date === 'today') {
-      start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-    } else {
-      // Expect YYYY-MM-DD
-      const m = /^\d{4}-\d{2}-\d{2}$/.exec(filters.date);
-      if (m) {
-        const [y, mo, d] = filters.date.split('-').map((x) => Number(x));
-        start = new Date(y, mo - 1, d);
-        end = new Date(y, mo - 1, d + 1);
-      }
-    }
-    if (start && end) {
-      where.timestamp_creation = { [Op.gte]: start, [Op.lt]: end };
-    }
+    const range = buildUtcDayRange(filters.date);
+    if (range?.start && range?.end) where.timestamp_creation = { [Op.gte]: range.start, [Op.lt]: range.end };
   }
 
   const orders = await Orders.findAll({ where, order: [['timestamp_creation', 'DESC']] });
@@ -325,23 +328,8 @@ async function listActiveOrders(filters = {}) {
   };
 
   if (filters.date) {
-    const now = new Date();
-    let start;
-    let end;
-    if (filters.date === 'today') {
-      start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-    } else {
-      const m = /^\d{4}-\d{2}-\d{2}$/.exec(filters.date);
-      if (m) {
-        const [y, mo, d] = filters.date.split('-').map((x) => Number(x));
-        start = new Date(y, mo - 1, d);
-        end = new Date(y, mo - 1, d + 1);
-      }
-    }
-    if (start && end) {
-      where.timestamp_creation = { [Op.gte]: start, [Op.lt]: end };
-    }
+    const range = buildUtcDayRange(filters.date);
+    if (range?.start && range?.end) where.timestamp_creation = { [Op.gte]: range.start, [Op.lt]: range.end };
   }
 
   const orders = await Orders.findAll({ where, order: [['timestamp_creation', 'DESC']] });

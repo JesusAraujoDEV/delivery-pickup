@@ -16,7 +16,7 @@ paths:
         - in: query
           name: date
           required: false
-          description: '"today" o fecha "YYYY-MM-DD" (filtra por timestamp_creation)'
+          description: '"today" o fecha "YYYY-MM-DD" (filtra por timestamp_creation en rango UTC 00:00Z-00:00Z)'
           schema:
             type: string
             example: today
@@ -60,7 +60,7 @@ paths:
         - in: query
           name: date
           required: false
-          description: '"today" o fecha "YYYY-MM-DD" (filtra por timestamp_creation)'
+          description: '"today" o fecha "YYYY-MM-DD" (filtra por timestamp_creation en rango UTC 00:00Z-00:00Z)'
           schema:
             type: string
             example: today
@@ -88,7 +88,7 @@ paths:
         - in: query
           name: date
           required: false
-          description: '"today" o fecha "YYYY-MM-DD" (filtra por timestamp_creation)'
+          description: '"today" o fecha "YYYY-MM-DD" (filtra por timestamp_creation en rango UTC 00:00Z-00:00Z)'
           schema:
             type: string
             example: today
