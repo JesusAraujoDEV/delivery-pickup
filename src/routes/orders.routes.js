@@ -15,6 +15,7 @@ import {
 	patchOrderSchema,
 	assignOrderSchema,
 	setOrderStatusSchema,
+	cancelOrderSchema,
 } from '../schemas/orders.schemas.js';
 
 const router = Router();
@@ -36,6 +37,10 @@ router.post(
 
 // Estado por destino (order_id) - endpoint único
 router.patch('/:order_id/status', validateParams(orderIdParamSchema), validate(setOrderStatusSchema), ctrl.setOrderStatus);
+
+// Acción: cancelar orden (UUID o DL-####)
+router.post('/:id/cancel', validateParams(orderIdParamSchema), validate(cancelOrderSchema), ctrl.cancelOrder);
+router.patch('/:id/cancel', validateParams(orderIdParamSchema), validate(cancelOrderSchema), ctrl.cancelOrder);
 
 // Admin: detalle / edición / asignación
 router.get('/:id', validateParams(orderIdParamSchema), ctrl.getOrderDetailFlexible);

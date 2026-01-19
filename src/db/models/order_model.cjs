@@ -38,6 +38,10 @@ const OrdersSchema = {
     allowNull: false,
     type: DataTypes.STRING(30),
   },
+  reason_cancelled: {
+    allowNull: true,
+    type: DataTypes.TEXT,
+  },
   monto_total: {
     allowNull: false,
     type: DataTypes.DECIMAL(10,2),

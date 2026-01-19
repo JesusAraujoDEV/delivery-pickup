@@ -186,8 +186,10 @@ async function webhookKitchenReady(readable_id) {
  * Admin: cambio de estado por estado destino.
  * Actualiza timestamps según el status destino y registra log.
  */
-async function setOrderStatus(order_id, status_to) {
+async function setOrderStatus(order_id, status_to, options = {}) {
   const { Orders, OrderItems, Logs } = getModels();
+
+  const { reason_cancelled } = options || {};
 
   const isReadable = typeof order_id === 'string' && /^DL-\d+$/i.test(order_id);
   return await sequelize.transaction(async (transaction) => {
@@ -200,13 +202,23 @@ async function setOrderStatus(order_id, status_to) {
     if (status_from === status_to) {
       // Idempotencia + backfill: si la orden ya está CANCELLED/DELIVERED pero no tiene timestamp_closure,
       // lo completamos usando el primer log correspondiente.
+      const backfill = {};
       if ((status_to === 'CANCELLED' || status_to === 'DELIVERED') && !order.timestamp_closure) {
         const firstClosureLog = await Logs.findOne({
           where: { order_id: order.order_id, status_to },
           order: [['timestamp_transition', 'ASC']],
           transaction,
         });
-        await order.update({ timestamp_closure: firstClosureLog?.timestamp_transition ?? new Date() }, { transaction });
+        backfill.timestamp_closure = firstClosureLog?.timestamp_transition ?? new Date();
+      }
+
+      if (status_to === 'CANCELLED' && typeof reason_cancelled === 'string' && reason_cancelled.trim()) {
+        // No sobrescribimos un motivo existente, para evitar perder contexto.
+        if (!order.reason_cancelled) backfill.reason_cancelled = reason_cancelled.trim();
+      }
+
+      if (Object.keys(backfill).length > 0) {
+        await order.update(backfill, { transaction });
       }
       return { order_id: order.order_id, readable_id: order.readable_id, status: order.current_status };
     }
@@ -287,11 +299,20 @@ async function setOrderStatus(order_id, status_to) {
     if (status_to === 'DELIVERED') timestamps.timestamp_closure = now;
     if (status_to === 'CANCELLED') timestamps.timestamp_closure = now;
 
-    await order.update({ current_status: status_to, ...timestamps }, { transaction });
+    const updatePayload = { current_status: status_to, ...timestamps };
+    if (status_to === 'CANCELLED' && typeof reason_cancelled === 'string' && reason_cancelled.trim()) {
+      updatePayload.reason_cancelled = reason_cancelled.trim();
+    }
+
+    await order.update(updatePayload, { transaction });
     await Logs.create({ log_id: randomUUID(), order_id: order.order_id, status_from, status_to }, { transaction });
 
     return { order_id: order.order_id, readable_id: order.readable_id, status: status_to };
   });
+}
+
+async function cancelOrder(idOrReadable, reason_cancelled) {
+  return setOrderStatus(idOrReadable, 'CANCELLED', { reason_cancelled });
 }
 
 async function listOrdersByStatus() {
@@ -446,4 +467,5 @@ export default {
   patchOrder,
   assignOrder,
   setOrderStatus,
+  cancelOrder,
 };

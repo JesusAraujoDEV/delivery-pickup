@@ -191,6 +191,55 @@ paths:
                   details:
                     type: object
 
+  /api/dp/v1/orders/{id}/cancel:
+    post:
+      tags: [Orders]
+      summary: Cancelar una orden con motivo
+      security: []
+      description: |
+        Cancela una orden (UUID o DL-####) y guarda el motivo en `dp_orders.reason_cancelled`.
+
+        Nota: internamente usa las mismas reglas de transición y la integración con Cocina
+        que `PATCH /api/dp/v1/orders/{order_id}/status` al pasar a `CANCELLED`.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            oneOf:
+              - type: string
+                format: uuid
+              - type: string
+                example: DL-8095
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelOrderInput'
+      responses:
+        '200':
+          description: Orden cancelada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  order_id:
+                    type: string
+                    format: uuid
+                  readable_id:
+                    type: string
+                  status:
+                    type: string
+                    example: CANCELLED
+        '400':
+          description: Payload/params inválidos o transición inválida
+        '404':
+          description: Orden no encontrada
+        '502':
+          description: Error al cancelar en Cocina
+
   /api/dp/v1/orders/{order_id}:
     get:
       tags: [Orders]
@@ -293,6 +342,14 @@ components:
         status:
           type: string
           enum: [PENDING_REVIEW, IN_KITCHEN, READY_FOR_DISPATCH, EN_ROUTE, DELIVERED, CANCELLED]
+
+    CancelOrderInput:
+      type: object
+      required: [reason_cancelled]
+      properties:
+        reason_cancelled:
+          type: string
+          example: Cliente solicitó cancelar
 
     OrderItem:
       type: object
@@ -446,6 +503,9 @@ components:
           enum: [DELIVERY, PICKUP]
         current_status:
           type: string
+        reason_cancelled:
+          type: string
+          nullable: true
         monto_total:
           type: number
           format: decimal
@@ -526,6 +586,9 @@ components:
           enum: [DELIVERY, PICKUP]
         current_status:
           type: string
+        reason_cancelled:
+          type: string
+          nullable: true
         monto_total:
           type: number
           format: decimal

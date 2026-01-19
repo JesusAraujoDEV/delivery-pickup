@@ -118,6 +118,25 @@ async function setOrderStatus(req, res, next) {
   }
 }
 
+// Acción: cancelar orden (UUID o DL-####) con motivo
+async function cancelOrder(req, res, next) {
+  try {
+    const { id } = req.params;
+    const { reason_cancelled } = req.body;
+    const data = await ordersService.cancelOrder(id, reason_cancelled);
+    if (!data) return res.status(404).json({ message: 'Order not found' });
+    res.json(data);
+  } catch (err) {
+    if (err?.statusCode === 400) {
+      return res.status(400).json({ message: err.message, details: err.details });
+    }
+    if (err?.statusCode === 502) {
+      return res.status(502).json({ message: err.message, details: err.details });
+    }
+    next(err);
+  }
+}
+
 export default {
   createOrder,
   listOrders,
@@ -128,4 +147,5 @@ export default {
   patchOrder,
   assignOrder,
   setOrderStatus,
+  cancelOrder,
 };

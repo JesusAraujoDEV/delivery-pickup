@@ -148,6 +148,11 @@ export const setOrderStatusSchema = Joi.object({
     .required(),
 }).required();
 
+// Para endpoint POST/PATCH /orders/{id}/cancel
+export const cancelOrderSchema = Joi.object({
+  reason_cancelled: Joi.string().trim().max(500).required(),
+}).required();
+
 export function validate(schema) {
   return (req, res, next) => {
     const { error, value } = schema.validate(req.body, { abortEarly: false, stripUnknown: true });
