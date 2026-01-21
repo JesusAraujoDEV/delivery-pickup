@@ -56,7 +56,7 @@ export const orderItemSchema = Joi.object({
   product_name: Joi.string().required(),
   quantity: Joi.number().integer().min(1).required(),
   unit_price: Joi.number().precision(2).min(0).required(),
-  notes: Joi.string().allow('', null).optional(),
+  notes: Joi.alternatives().try(Joi.string(), Joi.array(), Joi.object()).allow('', null).optional(),
 });
 
 export const customerSchema = Joi.object({
@@ -88,7 +88,7 @@ export const kitchenLikeCreateOrderSchema = Joi.object({
       Joi.object({
         productId: Joi.string().required(),
         quantity: Joi.number().integer().min(1).required(),
-        notes: Joi.string().allow('', null).optional(),
+        notes: Joi.alternatives().try(Joi.string(), Joi.array(), Joi.object()).allow('', null).optional(),
       })
     )
     .min(1)

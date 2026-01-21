@@ -37,7 +37,7 @@ const OrderItemsSchema = {
   },
   notes: {
     allowNull: true,
-    type: DataTypes.STRING(255),
+    type: DataTypes.TEXT,
   },
 };
 

@@ -162,7 +162,7 @@ async function createOrder(payload) {
     quantity: it.quantity,
     unit_price: it.unit_price,
     subtotal: (Number(it.unit_price) * Number(it.quantity)).toFixed(2),
-    notes: it.notes ?? null,
+    notes: it.notes == null ? null : (typeof it.notes === 'string' ? it.notes : JSON.stringify(it.notes)),
   }));
   await OrderItems.bulkCreate(itemsToCreate);
 
@@ -283,8 +283,9 @@ async function setOrderStatus(order_id, status_to, options = {}) {
       items: resolved.map(({ it, productId }) => ({
         productId,
         quantity: it.quantity,
-        // Cocina valida `notes` como string (no acepta null)
-        notes: it.notes == null ? '' : String(it.notes),
+        // Cocina valida `notes` como string (no acepta null).
+        // Si la nota fue enviada como objeto/array la convertimos a JSON string.
+        notes: it.notes == null ? '' : (typeof it.notes === 'string' ? it.notes : JSON.stringify(it.notes)),
       })),
     };
 
@@ -396,6 +397,26 @@ async function getOrderDetail(order_id) {
     ],
     order: [[{ model: Logs, as: 'logs' }, 'timestamp_transition', 'ASC']],
   });
+  if (!order) return order;
+  // Parse notes stored as JSON strings back to objects/arrays when possible
+  try {
+    if (Array.isArray(order.items)) {
+      order.items = order.items.map((it) => {
+        const copy = it.toJSON ? it.toJSON() : { ...it };
+        if (copy.notes && typeof copy.notes === 'string') {
+          try {
+            copy.notes = JSON.parse(copy.notes);
+          } catch (_) {
+            // leave as string
+          }
+        }
+        return copy;
+      });
+    }
+  } catch (_) {
+    // no-op on parse errors
+  }
+
   return order;
 }
 
@@ -414,6 +435,23 @@ async function getOrderDetailByReadableId(readable_id) {
     ],
     order: [[{ model: Logs, as: 'logs' }, 'timestamp_transition', 'ASC']],
   });
+  if (!order) return order;
+  try {
+    if (Array.isArray(order.items)) {
+      order.items = order.items.map((it) => {
+        const copy = it.toJSON ? it.toJSON() : { ...it };
+        if (copy.notes && typeof copy.notes === 'string') {
+          try {
+            copy.notes = JSON.parse(copy.notes);
+          } catch (_) {
+            // leave as string
+          }
+        }
+        return copy;
+      });
+    }
+  } catch (_) {}
+
   return order;
 }
 
