@@ -12,7 +12,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: [PENDING_REVIEW, IN_KITCHEN, READY_FOR_DISPATCH, EN_ROUTE, DELIVERED, CANCELLED]
+            enum: [PENDING_REVIEW, IN_KITCHEN, READY_FOR_DISPATCH, EN_ROUTE, DELIVERED, CANCELLED, ACTION]
         - in: query
           name: manager_id
           required: false
@@ -128,7 +128,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: [PENDING_REVIEW, IN_KITCHEN, READY_FOR_DISPATCH, EN_ROUTE, DELIVERED, CANCELLED]
+            enum: [PENDING_REVIEW, IN_KITCHEN, READY_FOR_DISPATCH, EN_ROUTE, DELIVERED, CANCELLED, ACTION]
         - in: query
           name: manager_id
           required: false
@@ -210,6 +210,7 @@ components:
         order_id:
           type: string
           format: uuid
+          nullable: true
         manager_id:
           type: string
           format: uuid
@@ -225,7 +226,28 @@ components:
         cancellation_reason:
           type: string
           nullable: true
+        http_method:
+          type: string
+          nullable: true
+          example: POST
+        path:
+          type: string
+          nullable: true
+          example: /api/dp/v1/zones
+        resource:
+          type: string
+          nullable: true
+          example: zones
         manager:
-          $ref: '#/components/schemas/ManagerSummary'
+          description: |
+            Puede ser un objeto (manager en DB) o un string (fallback desde JWT: "Nombre - email").
+          oneOf:
+            - $ref: '#/components/schemas/ManagerSummary'
+            - type: string
+              example: Usuario - usuario.p2@charlotte.com
+        manager_display:
+          type: string
+          nullable: true
+          description: Fallback calculado desde JWT (si viene Authorization).
         order:
           $ref: '#/components/schemas/OrderSummary'

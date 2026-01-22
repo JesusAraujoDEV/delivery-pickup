@@ -11,7 +11,7 @@ export const orderIdParamSchema = Joi.object({
 export const logsSearchQuerySchema = Joi.object({
   // Filtra por status_to (estado destino). Se suele usar para auditoría.
   status: Joi.string()
-    .valid('PENDING_REVIEW', 'IN_KITCHEN', 'READY_FOR_DISPATCH', 'EN_ROUTE', 'DELIVERED', 'CANCELLED')
+    .valid('PENDING_REVIEW', 'IN_KITCHEN', 'READY_FOR_DISPATCH', 'EN_ROUTE', 'DELIVERED', 'CANCELLED', 'ACTION')
     .optional(),
 
   // Filtra por manager_id (quién hizo la transición / acción)

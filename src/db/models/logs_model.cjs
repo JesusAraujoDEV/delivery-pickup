@@ -11,7 +11,7 @@ const LogsSchema = {
     type: DataTypes.UUID,
   },
   order_id: {
-    allowNull: false,
+    allowNull: true,
     type: DataTypes.UUID,
     references: {
       model: ORDERS_TABLE,
@@ -46,6 +46,24 @@ const LogsSchema = {
   cancellation_reason: {
     allowNull: true,
     type: DataTypes.TEXT,
+  },
+
+  // Audit extras (optional)
+  manager_display: {
+    allowNull: true,
+    type: DataTypes.TEXT,
+  },
+  http_method: {
+    allowNull: true,
+    type: DataTypes.STRING(10),
+  },
+  path: {
+    allowNull: true,
+    type: DataTypes.TEXT,
+  },
+  resource: {
+    allowNull: true,
+    type: DataTypes.STRING(50),
   },
 };
 

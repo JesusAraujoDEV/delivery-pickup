@@ -20,6 +20,9 @@ function resolveCaFromEnv() {
 export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
   port: Number(process.env.PORT || 3000),
+  secretKey: process.env.SECRET_KEY || 'default-secret-change-in-production',
+  // WARNING: JWT payload contains PII. Enable only for debugging.
+  logJwtPayload: (process.env.LOG_JWT_PAYLOAD === '1' || process.env.LOG_JWT_PAYLOAD === 'true') ? true : false,
   corsWhitelist: (process.env.CORS_WHITELIST || '')
     .split(',')
     .map(s => s.trim())

@@ -10,6 +10,20 @@ import {
   validateOrderItemsAgainstKitchenProducts,
 } from './kitchen.service.js';
 
+async function createLogSafe(Logs, values, createOptions) {
+  try {
+    return await Logs.create(values, createOptions);
+  } catch (e) {
+    // Backward-compat: if migrations haven't been run yet, extra audit columns won't exist.
+    const msg = String(e?.message || '');
+    if (msg.includes('manager_display') || msg.includes('http_method') || msg.includes('resource') || msg.includes('path')) {
+      const { manager_display, http_method, path, resource, ...legacy } = values || {};
+      return await Logs.create(legacy, createOptions);
+    }
+    throw e;
+  }
+}
+
 function generateReadableId() {
   // Simple human-readable id: DL-XXXX
   const num = Math.floor(1000 + Math.random() * 9000);
@@ -35,8 +49,10 @@ function buildUtcDayRange(dateStr) {
   return { start, end };
 }
 
-async function createOrder(payload) {
+async function createOrder(payload, options = {}) {
   const { Orders, OrderItems, Logs, Zones } = getModels();
+
+  const { manager_display } = options || {};
 
   // Support two input shapes:
   // 1) DP shape: { service_type, zone_id, customer:{...}, items:[{product_id,product_name,quantity,unit_price}], shipping_cost? }
@@ -166,7 +182,13 @@ async function createOrder(payload) {
   }));
   await OrderItems.bulkCreate(itemsToCreate);
 
-  await Logs.create({ log_id: randomUUID(), order_id: order.order_id, status_from: null, status_to: 'PENDING_REVIEW' });
+  await createLogSafe(Logs, {
+    log_id: randomUUID(),
+    order_id: order.order_id,
+    manager_display: manager_display || null,
+    status_from: null,
+    status_to: 'PENDING_REVIEW',
+  });
 
   return { order_id: order.order_id, readable_id, status: order.current_status };
 }
@@ -190,6 +212,7 @@ async function setOrderStatus(order_id, status_to, options = {}) {
   const { Orders, OrderItems, Logs } = getModels();
 
   const { reason_cancelled } = options || {};
+  const { manager_display } = options || {};
 
   const isReadable = typeof order_id === 'string' && /^DL-\d+$/i.test(order_id);
   return await sequelize.transaction(async (transaction) => {
@@ -306,14 +329,20 @@ async function setOrderStatus(order_id, status_to, options = {}) {
     }
 
     await order.update(updatePayload, { transaction });
-    await Logs.create({ log_id: randomUUID(), order_id: order.order_id, status_from, status_to }, { transaction });
+    await createLogSafe(Logs, {
+      log_id: randomUUID(),
+      order_id: order.order_id,
+      manager_display: manager_display || null,
+      status_from,
+      status_to,
+    }, { transaction });
 
     return { order_id: order.order_id, readable_id: order.readable_id, status: status_to };
   });
 }
 
-async function cancelOrder(idOrReadable, reason_cancelled) {
-  return setOrderStatus(idOrReadable, 'CANCELLED', { reason_cancelled });
+async function cancelOrder(idOrReadable, reason_cancelled, options = {}) {
+  return setOrderStatus(idOrReadable, 'CANCELLED', { reason_cancelled, ...(options || {}) });
 }
 
 async function listOrdersByStatus() {
@@ -472,20 +501,23 @@ async function patchOrder(order_id, payload) {
  * Nota: No existe tabla/campo de drivers en este proyecto aún.
  * Como fallback, registramos la asignación como un log (manager_id) y opcionalmente un texto.
  */
-async function assignOrder(order_id, payload) {
+async function assignOrder(order_id, payload, options = {}) {
   const { Orders, Logs } = getModels();
   const order = await Orders.findByPk(order_id);
   if (!order) return null;
+
+  const { manager_display } = options || {};
 
   const prev = order.current_status;
 
   // No cambiamos estado por defecto (no estaba definido un status de "ASSIGNED").
   // Si luego se agrega, esto puede evolucionar.
 
-  await Logs.create({
+  await createLogSafe(Logs, {
     log_id: randomUUID(),
     order_id: order.order_id,
     manager_id: payload.manager_id || null,
+    manager_display: manager_display || null,
     status_from: prev,
     status_to: prev,
     cancellation_reason: payload.note || null,

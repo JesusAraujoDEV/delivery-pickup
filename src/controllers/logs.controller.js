@@ -1,11 +1,45 @@
 import logsService from '../services/logs.service.js';
 
+function withManagerDisplay(req, data) {
+  const display = req.auth_display || null;
+
+  if (Array.isArray(data)) {
+    return data.map((row) => {
+      const plain = row?.toJSON ? row.toJSON() : row;
+      // Prefer persisted manager_display (works even when GET is unauthenticated)
+      if (plain && plain.manager == null && plain.manager_display) {
+        plain.manager = plain.manager_display;
+      }
+      // If DB join didn't find a manager, expose the JWT user as a simple string.
+      if (plain && plain.manager == null && display) {
+        plain.manager = display;
+      }
+      if (plain && plain.manager_display == null) {
+        plain.manager_display = display;
+      }
+      return plain;
+    });
+  }
+
+  const plain = data?.toJSON ? data.toJSON() : data;
+  if (plain && plain.manager == null && plain.manager_display) {
+    plain.manager = plain.manager_display;
+  }
+  if (plain && plain.manager == null && display) {
+    plain.manager = display;
+  }
+  if (plain && plain.manager_display == null) {
+    plain.manager_display = display;
+  }
+  return plain;
+}
+
 // GET /api/dp/v1/logs
 async function list(req, res, next) {
   try {
     const { limit, offset } = req.query || {};
     const data = await logsService.list({ limit, offset });
-    res.json(data);
+    res.json(withManagerDisplay(req, data));
   } catch (err) {
     next(err);
   }
@@ -17,7 +51,7 @@ async function get(req, res, next) {
     const { log_id } = req.params;
     const data = await logsService.getById(log_id);
     if (!data) return res.status(404).json({ message: 'Log not found' });
-    res.json(data);
+    res.json(withManagerDisplay(req, data));
   } catch (err) {
     next(err);
   }
@@ -29,7 +63,7 @@ async function listByOrder(req, res, next) {
     const { order_id } = req.params;
     const { limit, offset } = req.query || {};
     const data = await logsService.listByOrder(order_id, { limit, offset });
-    res.json(data);
+    res.json(withManagerDisplay(req, data));
   } catch (err) {
     next(err);
   }
@@ -40,7 +74,7 @@ async function search(req, res, next) {
   try {
     const { status, manager_id, from, to, limit, offset } = req.query || {};
     const data = await logsService.search({ status, manager_id, from, to, limit, offset });
-    res.json(data);
+    res.json(withManagerDisplay(req, data));
   } catch (err) {
     next(err);
   }

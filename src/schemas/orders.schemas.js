@@ -68,8 +68,8 @@ export const customerSchema = Joi.object({
 
 export const createOrderSchema = Joi.object({
   service_type: Joi.string().valid('DELIVERY', 'PICKUP').required(),
-  zone_id: Joi.string().guid({ version: ['uuidv4'] }).required(),
-  customer: customerSchema.required(),
+  zone_id: Joi.string().guid({ version: ['uuidv4'] }).optional(),
+  customer: customerSchema.optional(),
   items: Joi.array().items(orderItemSchema).min(1).required(),
   // Nota: se acepta opcionalmente pero el backend lo calcula desde la zona.
   shipping_cost: Joi.number().precision(2).min(0).optional(),

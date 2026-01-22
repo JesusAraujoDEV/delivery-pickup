@@ -6,11 +6,19 @@ import { mountSwagger } from './swagger/swagger.js';
 import cors from 'cors';
 import env from './config/config.js';
 import { useMetrex } from 'metrex';
+import { decodeJwtAlways } from './middlewares/jwt.middleware.js';
+import { auditNonGetActions } from './middlewares/audit-logs.middleware.js';
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+
+// Decode/verify JWT on every request (if Authorization header is present)
+app.use(decodeJwtAlways);
+
+// Create audit log entry for every non-GET action under /api/dp/v1
+app.use(auditNonGetActions);
 
 // Globally instrument and mount the Metrex dashboard at /metrex
 // Returns helper methods for custom metrics
