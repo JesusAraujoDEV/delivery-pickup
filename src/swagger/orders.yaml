@@ -390,7 +390,7 @@ components:
 
     DpCreateOrderInput:
       type: object
-      required: [service_type, zone_id, customer, items]
+      required: [service_type, customer, items]
       properties:
         service_type:
           type: string
@@ -398,7 +398,8 @@ components:
         zone_id:
           type: string
           format: uuid
-          description: ID de la zona (dp_zones.zone_id). Requerido.
+          nullable: true
+          description: ID de la zona (dp_zones.zone_id). Requerido para DELIVERY, opcional para PICKUP.
         customer:
           $ref: '#/components/schemas/Customer'
         items:

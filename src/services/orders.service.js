@@ -90,32 +90,40 @@ async function createOrder(payload, options = {}) {
       }
     : payload;
 
-  if (!dpPayload?.zone_id) {
-    const err = new Error('zone_id is required');
-    err.statusCode = 400;
-    throw err;
-  }
+  const serviceType = dpPayload?.service_type;
+  const zoneId = dpPayload?.zone_id || null;
 
-  const zone = await Zones.findByPk(dpPayload.zone_id);
-  if (!zone) {
-    const err = new Error('Zone not found');
-    err.statusCode = 400;
-    err.details = { zone_id: dpPayload.zone_id };
-    throw err;
-  }
-  if (zone.is_active === false) {
-    const err = new Error('Zone is inactive');
-    err.statusCode = 400;
-    err.details = { zone_id: dpPayload.zone_id };
-    throw err;
-  }
+  let derivedShippingCost = 0;
+  if (zoneId) {
+    const zone = await Zones.findByPk(zoneId);
+    if (!zone) {
+      const err = new Error('Zone not found');
+      err.statusCode = 400;
+      err.details = { zone_id: zoneId };
+      throw err;
+    }
+    if (zone.is_active === false) {
+      const err = new Error('Zone is inactive');
+      err.statusCode = 400;
+      err.details = { zone_id: zoneId };
+      throw err;
+    }
 
-  const derivedShippingCost = Number(zone.shipping_cost);
-  if (Number.isNaN(derivedShippingCost)) {
-    const err = new Error('Zone shipping_cost is invalid');
-    err.statusCode = 500;
-    err.details = { zone_id: dpPayload.zone_id, shipping_cost: zone.shipping_cost };
-    throw err;
+    derivedShippingCost = Number(zone.shipping_cost);
+    if (Number.isNaN(derivedShippingCost)) {
+      const err = new Error('Zone shipping_cost is invalid');
+      err.statusCode = 500;
+      err.details = { zone_id: zoneId, shipping_cost: zone.shipping_cost };
+      throw err;
+    }
+  } else {
+    // For PICKUP, zone_id is optional and shipping_cost is always 0.
+    if (serviceType !== 'PICKUP') {
+      const err = new Error('zone_id is required');
+      err.statusCode = 400;
+      throw err;
+    }
+    derivedShippingCost = 0;
   }
 
   // Kitchen validation: ensure products exist and are active
@@ -168,7 +176,7 @@ async function createOrder(payload, options = {}) {
     current_status: 'PENDING_REVIEW',
     monto_total: total.toFixed(2),
     monto_costo_envio: derivedShippingCost.toFixed(2),
-    zone_id: dpPayload.zone_id,
+    zone_id: zoneId,
   });
 
   const itemsToCreate = dpPayload.items.map((it) => ({

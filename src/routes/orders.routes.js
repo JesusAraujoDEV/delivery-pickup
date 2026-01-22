@@ -31,7 +31,7 @@ router.get('/status/:status', validateParams(orderStatusParamSchema), validateQu
 
 router.post(
 	'/',
-	validateOneOf([createOrderSchema, kitchenLikeCreateOrderSchema]),
+	validateOneOf([createOrderSchema]),
 	ctrl.createOrder
 );
 
