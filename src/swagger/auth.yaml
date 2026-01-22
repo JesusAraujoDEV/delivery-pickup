@@ -1,0 +1,59 @@
+tags:
+  - name: Auth
+
+paths:
+  /api/dp/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login (proxy a Seguridad)
+      description: |
+        Proxy hacia Seguridad:
+        `POST https://charlotte-seguridad.onrender.com/api/seguridad/auth/login`
+
+        Devuelve el `token` tal cual lo entrega el servicio de Seguridad.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthLoginRequest'
+            example:
+              email: usuario.p2@charlotte.com
+              password: SuperSeguraPassword
+      responses:
+        '200':
+          description: Token JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthLoginResponse'
+        '400':
+          description: Payload inválido
+        '401':
+          description: Credenciales inválidas
+        '403':
+          description: Forbidden
+        '502':
+          description: Error del servicio de Seguridad
+        '504':
+          description: Timeout del servicio de Seguridad
+
+components:
+  schemas:
+    AuthLoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+
+    AuthLoginResponse:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
