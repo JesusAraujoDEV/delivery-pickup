@@ -308,7 +308,14 @@ async function setOrderStatus(order_id, status_to, options = {}) {
       // Sin order_source_id: usamos el UUID de DP como correlación externa.
       externalOrderId: String(order.order_id),
       sourceModule: 'DP_MODULE',
-      serviceMode: order.service_type === 'DELIVERY' ? 'DELIVERY' : 'PICKUP',
+      // Mapear valores locales a los esperados por Cocina
+      // Cocina espera: DINE_IN | DELIVERY | TAKEOUT
+      serviceMode:
+        order.service_type === 'DELIVERY'
+          ? 'DELIVERY'
+          : order.service_type === 'PICKUP'
+          ? 'TAKEOUT'
+          : 'DINE_IN',
       displayLabel: order.readable_id,
       customerName: order.customer_name,
       items: resolved.map(({ it, productId }) => ({
