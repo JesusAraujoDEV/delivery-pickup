@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import * as controller from '../controllers/thresholds.controller.js';
 import Joi from 'joi';
-import { validateBody, validateParams, createThresholdSchema, thresholdIdParamSchema } from '../schemas/thresholds.schemas.js';
+import { validateBody, validateParams, createThresholdSchema, updateThresholdSchema, thresholdIdParamSchema } from '../schemas/thresholds.schemas.js';
 import { authorize } from '../middlewares/auth.middleware.js';
 import { VALID_METRICS } from '../utils/constants.js';
 
@@ -21,6 +21,14 @@ router.get(
 router.post('/thresholds', authorize('Thresholds_dp', 'Create'), validateBody(createThresholdSchema), controller.create);
 
 router.get('/thresholds/:threshold_id', validateParams(thresholdIdParamSchema), controller.get);
+
+router.patch(
+	'/thresholds/:threshold_id',
+	authorize('Thresholds_dp', 'Update'),
+	validateParams(thresholdIdParamSchema),
+	validateBody(updateThresholdSchema),
+	controller.update,
+);
 
 router.patch('/thresholds/:threshold_id/activate', authorize('Thresholds_dp', 'Update'), validateParams(thresholdIdParamSchema), controller.activate);
 router.patch('/thresholds/:threshold_id/deactivate', authorize('Thresholds_dp', 'Update'), validateParams(thresholdIdParamSchema), controller.deactivate);

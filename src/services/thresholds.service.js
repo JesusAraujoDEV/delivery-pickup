@@ -44,4 +44,12 @@ export async function create(payload) {
   return record;
 }
 
-export default { list, listActive, getByMetric, getById, setActive, remove, create };
+export async function update(threshold_id, payload) {
+  const { Thresholds } = getModels();
+  const record = await Thresholds.findByPk(threshold_id);
+  if (!record) return null;
+  await record.update(payload);
+  return record;
+}
+
+export default { list, listActive, getByMetric, getById, setActive, remove, create, update };

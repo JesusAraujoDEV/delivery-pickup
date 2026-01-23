@@ -105,4 +105,21 @@ export async function create(req, res) {
   }
 }
 
-export default { list, listActive, getByMetric, get, activate, deactivate, remove, create };
+export async function update(req, res) {
+  try {
+    const { threshold_id } = req.params;
+    const payload = req.body;
+
+    const updated = await service.update(threshold_id, payload);
+    if (!updated) return res.status(404).json({ message: 'Threshold not found' });
+    res.json(updated);
+  } catch (err) {
+    console.error('thresholds.update error', err);
+    if (err && err.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({ message: 'metric_affected must be unique' });
+    }
+    res.status(500).json({ message: 'Internal error' });
+  }
+}
+
+export default { list, listActive, getByMetric, get, activate, deactivate, remove, create, update };

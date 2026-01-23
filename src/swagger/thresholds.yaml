@@ -100,6 +100,36 @@ paths:
         '404':
           description: Threshold no encontrado
 
+    patch:
+      tags: [Thresholds]
+      summary: Actualizar threshold
+      parameters:
+        - in: path
+          name: threshold_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateThresholdInput'
+      responses:
+        '200':
+          description: Threshold actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Threshold'
+        '400':
+          description: Payload/params inválidos
+        '404':
+          description: Threshold no encontrado
+        '409':
+          description: metric_affected debe ser único
+
     delete:
       tags: [Thresholds]
       summary: Eliminar threshold
@@ -182,6 +212,26 @@ components:
     CreateThresholdInput:
       type: object
       required: [metric_affected, value_critical]
+      properties:
+        metric_affected:
+          type: string
+          maxLength: 50
+          enum:
+            - ORDERS_PENDING_MAX
+            - KITCHEN_TIME_MAX_MINUTES
+            - DISPATCH_CAPACITY_MAX
+            - DELIVERY_TRAVEL_TIME_MAX_MINUTES
+            - DRIVER_ASSIGNMENT_TIMEOUT_MINUTES
+            - PICKUP_WAIT_TIME_MAX_MINUTES
+            - TOTAL_ORDER_CYCLE_MAX_MINUTES
+        value_critical:
+          type: integer
+        is_active:
+          type: boolean
+
+    UpdateThresholdInput:
+      type: object
+      description: Campos editables del threshold
       properties:
         metric_affected:
           type: string

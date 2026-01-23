@@ -9,6 +9,16 @@ export const createThresholdSchema = Joi.object({
   is_active: Joi.boolean().optional(),
 });
 
+export const updateThresholdSchema = Joi.object({
+  metric_affected: Joi.string()
+    .valid(...VALID_METRICS)
+    .optional(),
+  value_critical: Joi.number().integer().optional(),
+  is_active: Joi.boolean().optional(),
+})
+  .min(1)
+  .required();
+
 export const thresholdIdParamSchema = Joi.object({
   threshold_id: Joi.string().guid({ version: ['uuidv4'] }).required(),
 });
