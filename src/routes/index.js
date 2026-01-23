@@ -6,7 +6,6 @@ import webhookRoutes from './webhooks.routes.js';
 import reportRoutes from './reports.routes.js';
 import thresholdsRoutes from './thresholds.routes.js';
 import zonesRoutes from './zones.routes.js';
-import managersRoutes from './managers.routes.js';
 import logsRoutes from './logs.routes.js';
 import authRoutes from './auth.routes.js';
 
@@ -20,7 +19,6 @@ router.use('/reports', reportRoutes);
 router.use('/', thresholdsRoutes);
 router.use('/', logsRoutes);
 router.use('/zones', zonesRoutes);
-router.use('/managers', managersRoutes);
 router.use('/auth', authRoutes);
 
 export default router;

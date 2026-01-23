@@ -14,9 +14,6 @@ export const logsSearchQuerySchema = Joi.object({
     .valid('PENDING_REVIEW', 'IN_KITCHEN', 'READY_FOR_DISPATCH', 'EN_ROUTE', 'DELIVERED', 'CANCELLED', 'ACTION')
     .optional(),
 
-  // Filtra por manager_id (quién hizo la transición / acción)
-  manager_id: Joi.string().guid({ version: ['uuidv4'] }).optional(),
-
   // Rango de fechas (timestamp_transition)
   from: Joi.string().isoDate().optional(),
   to: Joi.string().isoDate().optional(),

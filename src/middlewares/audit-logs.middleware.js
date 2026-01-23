@@ -44,7 +44,6 @@ export function auditNonGetActions(req, res, next) {
       await Logs.create({
         log_id: randomUUID(),
         order_id,
-        manager_id: null,
         manager_display: req.auth_display || null,
         http_method: String(req.method || '').toUpperCase(),
         path: pathname,

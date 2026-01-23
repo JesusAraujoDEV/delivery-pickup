@@ -557,9 +557,6 @@ components:
       type: object
       description: 'Asignar motorizado (placeholder: aún no hay tabla drivers; se registra como log)'
       properties:
-        manager_id:
-          type: string
-          format: uuid
         note:
           type: string
 

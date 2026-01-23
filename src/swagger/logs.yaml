@@ -14,12 +14,6 @@ paths:
             type: string
             enum: [PENDING_REVIEW, IN_KITCHEN, READY_FOR_DISPATCH, EN_ROUTE, DELIVERED, CANCELLED, ACTION]
         - in: query
-          name: manager_id
-          required: false
-          schema:
-            type: string
-            format: uuid
-        - in: query
           name: from
           required: false
           description: Fecha inicio ISO (timestamp_transition)
@@ -121,7 +115,7 @@ paths:
       summary: Filtrar por estatus, fechas, usuarios
       description: |
         Endpoint equivalente a GET /logs pero explícito para búsqueda.
-        Permite filtrar por status_to, manager_id y rango de fechas (timestamp_transition).
+        Permite filtrar por status_to y rango de fechas (timestamp_transition).
       parameters:
         - in: query
           name: status
@@ -129,12 +123,6 @@ paths:
           schema:
             type: string
             enum: [PENDING_REVIEW, IN_KITCHEN, READY_FOR_DISPATCH, EN_ROUTE, DELIVERED, CANCELLED, ACTION]
-        - in: query
-          name: manager_id
-          required: false
-          schema:
-            type: string
-            format: uuid
         - in: query
           name: from
           required: false
@@ -174,22 +162,6 @@ paths:
 
 components:
   schemas:
-    ManagerSummary:
-      type: object
-      properties:
-        manager_id:
-          type: string
-          format: uuid
-        user_id:
-          type: string
-          format: uuid
-        full_name:
-          type: string
-        role:
-          type: string
-        is_active:
-          type: boolean
-
     OrderSummary:
       type: object
       properties:
@@ -208,10 +180,6 @@ components:
           type: string
           format: uuid
         order_id:
-          type: string
-          format: uuid
-          nullable: true
-        manager_id:
           type: string
           format: uuid
           nullable: true
@@ -240,11 +208,10 @@ components:
           example: zones
         manager:
           description: |
-            Puede ser un objeto (manager en DB) o un string (fallback desde JWT: "Nombre - email").
-          oneOf:
-            - $ref: '#/components/schemas/ManagerSummary'
-            - type: string
-              example: Usuario - usuario.p2@charlotte.com
+            Fallback desde JWT: "Nombre - email" (o desde manager_display persistido).
+          type: string
+          nullable: true
+          example: Usuario - usuario.p2@charlotte.com
         manager_display:
           type: string
           nullable: true

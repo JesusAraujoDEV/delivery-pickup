@@ -425,11 +425,11 @@ async function listActiveOrders(filters = {}) {
  * Incluye items, logs y zona (si existe).
  */
 async function getOrderDetail(order_id) {
-  const { Orders, OrderItems, Logs, Zones, Managers } = getModels();
+  const { Orders, OrderItems, Logs, Zones } = getModels();
   const order = await Orders.findByPk(order_id, {
     include: [
       { model: OrderItems, as: 'items' },
-      { model: Logs, as: 'logs', include: [{ model: Managers, as: 'manager' }] },
+      { model: Logs, as: 'logs' },
       { model: Zones, as: 'zone', required: false },
     ],
     order: [[{ model: Logs, as: 'logs' }, 'timestamp_transition', 'ASC']],
@@ -462,12 +462,12 @@ async function getOrderDetail(order_id) {
  * Útil cuando el cliente/externo maneja un ID legible (ej: DL-1234).
  */
 async function getOrderDetailByReadableId(readable_id) {
-  const { Orders, OrderItems, Logs, Zones, Managers } = getModels();
+  const { Orders, OrderItems, Logs, Zones } = getModels();
   const order = await Orders.findOne({
     where: { readable_id },
     include: [
       { model: OrderItems, as: 'items' },
-      { model: Logs, as: 'logs', include: [{ model: Managers, as: 'manager' }] },
+      { model: Logs, as: 'logs' },
       { model: Zones, as: 'zone', required: false },
     ],
     order: [[{ model: Logs, as: 'logs' }, 'timestamp_transition', 'ASC']],
@@ -507,7 +507,7 @@ async function patchOrder(order_id, payload) {
 /**
  * Admin: asignar motorizado.
  * Nota: No existe tabla/campo de drivers en este proyecto aún.
- * Como fallback, registramos la asignación como un log (manager_id) y opcionalmente un texto.
+ * Como fallback, registramos la asignación como un log (manager_display) y opcionalmente un texto.
  */
 async function assignOrder(order_id, payload, options = {}) {
   const { Orders, Logs } = getModels();
@@ -524,14 +524,13 @@ async function assignOrder(order_id, payload, options = {}) {
   await createLogSafe(Logs, {
     log_id: randomUUID(),
     order_id: order.order_id,
-    manager_id: payload.manager_id || null,
     manager_display: manager_display || null,
     status_from: prev,
     status_to: prev,
     cancellation_reason: payload.note || null,
   });
 
-  return { order_id: order.order_id, readable_id: order.readable_id, assigned_to: payload.manager_id || null };
+  return { order_id: order.order_id, readable_id: order.readable_id, assigned_to: null };
 }
 
 export default {

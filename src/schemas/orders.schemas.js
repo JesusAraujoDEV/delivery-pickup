@@ -46,9 +46,8 @@ export const patchOrderSchema = Joi.object({
 
 export const assignOrderSchema = Joi.object({
   // Placeholder: en este proyecto no hay tabla drivers.
-  // Usamos manager_id para registrar en logs quién hizo la asignación.
-  manager_id: Joi.string().guid({ version: ['uuidv4'] }).optional(),
-  order_id: Joi.string().max(500).optional(),
+  // La auditoría queda registrada por JWT en Logs.manager_display.
+  note: Joi.string().max(500).optional(),
 }).min(1);
 
 export const orderItemSchema = Joi.object({

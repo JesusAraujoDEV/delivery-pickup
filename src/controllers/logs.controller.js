@@ -7,13 +7,9 @@ function withManagerDisplay(req, data) {
     return data.map((row) => {
       const plain = row?.toJSON ? row.toJSON() : row;
       // Prefer persisted manager_display (works even when GET is unauthenticated)
-      if (plain && plain.manager == null && plain.manager_display) {
-        plain.manager = plain.manager_display;
-      }
-      // If DB join didn't find a manager, expose the JWT user as a simple string.
-      if (plain && plain.manager == null && display) {
-        plain.manager = display;
-      }
+      if (plain && plain.manager_display) plain.manager = plain.manager_display;
+      // If not present, expose the JWT user as a simple string.
+      if (plain && !plain.manager && display) plain.manager = display;
       if (plain && plain.manager_display == null) {
         plain.manager_display = display;
       }
@@ -22,12 +18,8 @@ function withManagerDisplay(req, data) {
   }
 
   const plain = data?.toJSON ? data.toJSON() : data;
-  if (plain && plain.manager == null && plain.manager_display) {
-    plain.manager = plain.manager_display;
-  }
-  if (plain && plain.manager == null && display) {
-    plain.manager = display;
-  }
+  if (plain && plain.manager_display) plain.manager = plain.manager_display;
+  if (plain && !plain.manager && display) plain.manager = display;
   if (plain && plain.manager_display == null) {
     plain.manager_display = display;
   }
@@ -72,8 +64,8 @@ async function listByOrder(req, res, next) {
 // GET /api/dp/v1/logs/search
 async function search(req, res, next) {
   try {
-    const { status, manager_id, from, to, limit, offset } = req.query || {};
-    const data = await logsService.search({ status, manager_id, from, to, limit, offset });
+    const { status, from, to, limit, offset } = req.query || {};
+    const data = await logsService.search({ status, from, to, limit, offset });
     res.json(withManagerDisplay(req, data));
   } catch (err) {
     next(err);
