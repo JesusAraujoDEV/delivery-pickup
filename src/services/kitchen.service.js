@@ -95,7 +95,7 @@ export async function cancelKitchenOrder(orderId) {
  * { success: boolean, message: string, data: Array<{id,name,isActive,basePrice,...}> }
  */
 export async function fetchKitchenProducts() {
-  const url = `${KITCHEN_BASE_URL}/products`;
+  const url = `${KITCHEN_BASE_URL}/products?activeOnly=true`;
 
   const res = await fetch(url, {
     method: 'GET',

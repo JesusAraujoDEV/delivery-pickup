@@ -8,6 +8,7 @@ const TTL_MS = 60_000; // 1 minute
 function mapKitchenProductToCatalogItem(p) {
   return {
     product_id: String(p.id),
+    imageUrl: p.imageUrl || null,
     name: p.name ?? null,
     price: p.basePrice ?? null,
     available: Boolean(p.isActive),
