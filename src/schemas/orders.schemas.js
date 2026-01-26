@@ -42,6 +42,9 @@ export const patchOrderSchema = Joi.object({
   monto_costo_envio: Joi.number().precision(2).min(0).optional(),
   service_type: Joi.string().valid('DELIVERY', 'PICKUP').optional(),
   current_status: Joi.string().valid('PENDING_REVIEW', 'IN_KITCHEN', 'READY_FOR_DISPATCH', 'EN_ROUTE', 'DELIVERED', 'CANCELLED').optional(),
+  payment_reference: Joi.string().allow(null, '').optional(),
+  payment_type: Joi.string().valid('EFECTIVO', 'DIGITAL').optional(),
+  payment_received: Joi.boolean().optional(),
 }).min(1);
 
 export const assignOrderSchema = Joi.object({
@@ -72,6 +75,9 @@ export const createOrderSchema = Joi.object({
   items: Joi.array().items(orderItemSchema).min(1).required(),
   // Nota: se acepta opcionalmente pero el backend lo calcula desde la zona.
   shipping_cost: Joi.number().precision(2).min(0).optional(),
+  payment_reference: Joi.string().allow(null, '').optional(),
+  payment_type: Joi.string().valid('EFECTIVO', 'DIGITAL').optional(),
+  payment_received: Joi.boolean().optional(),
 });
 
 // Payload pedido (Kitchen-like)
@@ -92,6 +98,9 @@ export const kitchenLikeCreateOrderSchema = Joi.object({
     )
     .min(1)
     .required(),
+  payment_reference: Joi.string().allow(null, '').optional(),
+  payment_type: Joi.string().valid('EFECTIVO', 'DIGITAL').optional(),
+  payment_received: Joi.boolean().optional(),
 }).required();
 
 export function validateOneOf(schemas) {

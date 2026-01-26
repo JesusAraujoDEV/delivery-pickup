@@ -409,6 +409,14 @@ components:
         shipping_cost:
           type: number
           description: Se ignora si se envía; el backend lo calcula desde la zona.
+        payment_reference:
+          type: string
+          nullable: true
+        payment_type:
+          type: string
+          enum: [EFECTIVO, DIGITAL]
+        payment_received:
+          type: boolean
 
     KitchenCreateOrderInput:
       type: object
@@ -458,6 +466,9 @@ components:
           - productId: a5eccd9f-8b62-4ba5-ac9e-21ca43199718
             quantity: 3
             notes: Sin cebolla
+        payment_reference: "REF12345"
+        payment_type: DIGITAL
+        payment_received: false
 
     OrderStatus:
       type: object
@@ -479,6 +490,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/OrderItem'
+        payment_reference:
+          type: string
+          nullable: true
+        payment_type:
+          type: string
+          enum: [EFECTIVO, DIGITAL]
+        payment_received:
+          type: boolean
 
     OrderListItem:
       type: object
@@ -513,6 +532,14 @@ components:
         monto_costo_envio:
           type: number
           format: decimal
+        payment_reference:
+          type: string
+          nullable: true
+        payment_type:
+          type: string
+          enum: [EFECTIVO, DIGITAL]
+        payment_received:
+          type: boolean
         timestamp_creation:
           type: string
           format: date-time
@@ -593,6 +620,14 @@ components:
         monto_costo_envio:
           type: number
           format: decimal
+        payment_reference:
+          type: string
+          nullable: true
+        payment_type:
+          type: string
+          enum: [EFECTIVO, DIGITAL]
+        payment_received:
+          type: boolean
         timestamp_creation:
           type: string
           format: date-time

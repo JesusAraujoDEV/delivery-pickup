@@ -50,6 +50,20 @@ const OrdersSchema = {
     allowNull: false,
     type: DataTypes.DECIMAL(10,2),
   },
+  payment_reference: {
+    allowNull: true,
+    type: DataTypes.STRING(255),
+  },
+  payment_type: {
+    allowNull: false,
+    type: DataTypes.ENUM('EFECTIVO', 'DIGITAL'),
+    defaultValue: 'EFECTIVO',
+  },
+  payment_received: {
+    allowNull: false,
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
   timestamp_creation: {
     allowNull: false,
     type: DataTypes.DATE,
