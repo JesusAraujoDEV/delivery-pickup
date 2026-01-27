@@ -8,6 +8,7 @@ import env from './config/config.js';
 import { useMetrex } from 'metrex';
 import { decodeJwtAlways } from './middlewares/jwt.middleware.js';
 import { auditNonGetActions } from './middlewares/audit-logs.middleware.js';
+import requestOriginLogger from './middlewares/request-origin.middleware.js';
 
 dotenv.config();
 
@@ -38,6 +39,9 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
+
+// Log origin and endpoint for every incoming request
+app.use(requestOriginLogger);
 
 // Basic health check
 app.get('/health', (req, res) => res.json({ ok: true }));
