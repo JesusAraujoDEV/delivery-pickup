@@ -222,6 +222,18 @@ async function setOrderStatus(order_id, status_to, options = {}) {
   const { reason_cancelled } = options || {};
   const { manager_display } = options || {};
 
+  // Backwards-compatible: allow caller to pass a payload object as `status_to`,
+  // e.g. { status: 'DELIVERED', payment_received: true, payment_reference, payment_type }
+  let payment_received_payload;
+  let payment_reference_payload;
+  let payment_type_payload;
+  if (status_to && typeof status_to === 'object') {
+    payment_received_payload = typeof status_to.payment_received !== 'undefined' ? Boolean(status_to.payment_received) : undefined;
+    payment_reference_payload = typeof status_to.payment_reference !== 'undefined' ? status_to.payment_reference : undefined;
+    payment_type_payload = typeof status_to.payment_type !== 'undefined' ? status_to.payment_type : undefined;
+    status_to = status_to.status;
+  }
+
   const isReadable = typeof order_id === 'string' && /^DL-\d+$/i.test(order_id);
   return await sequelize.transaction(async (transaction) => {
     const order = isReadable
@@ -247,6 +259,11 @@ async function setOrderStatus(order_id, status_to, options = {}) {
         // No sobrescribimos un motivo existente, para evitar perder contexto.
         if (!order.reason_cancelled) backfill.reason_cancelled = reason_cancelled.trim();
       }
+
+      // Even if status is unchanged, allow updating payment fields if provided
+      if (typeof payment_received_payload !== 'undefined') backfill.payment_received = payment_received_payload;
+      if (typeof payment_reference_payload !== 'undefined') backfill.payment_reference = payment_reference_payload;
+      if (typeof payment_type_payload !== 'undefined') backfill.payment_type = payment_type_payload;
 
       if (Object.keys(backfill).length > 0) {
         await order.update(backfill, { transaction });
@@ -342,6 +359,11 @@ async function setOrderStatus(order_id, status_to, options = {}) {
     if (status_to === 'CANCELLED' && typeof reason_cancelled === 'string' && reason_cancelled.trim()) {
       updatePayload.reason_cancelled = reason_cancelled.trim();
     }
+
+    // Include optional payment fields when provided in payload
+    if (typeof payment_received_payload !== 'undefined') updatePayload.payment_received = payment_received_payload;
+    if (typeof payment_reference_payload !== 'undefined') updatePayload.payment_reference = payment_reference_payload;
+    if (typeof payment_type_payload !== 'undefined') updatePayload.payment_type = payment_type_payload;
 
     await order.update(updatePayload, { transaction });
     await createLogSafe(Logs, {

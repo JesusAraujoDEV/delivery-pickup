@@ -103,8 +103,9 @@ async function assignOrder(req, res, next) {
 async function setOrderStatus(req, res, next) {
   try {
     const { order_id } = req.params;
-    const { status } = req.body;
-    const data = await ordersService.setOrderStatus(order_id, status, { manager_display: req.auth_display || null });
+    // Accept full payload (e.g. { status: 'DELIVERED', payment_received: true })
+    const payload = req.body;
+    const data = await ordersService.setOrderStatus(order_id, payload, { manager_display: req.auth_display || null });
     if (!data) return res.status(404).json({ message: 'Order not found' });
     res.json(data);
   } catch (err) {

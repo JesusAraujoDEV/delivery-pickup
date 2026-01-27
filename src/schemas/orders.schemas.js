@@ -154,6 +154,9 @@ export const setOrderStatusSchema = Joi.object({
   status: Joi.string()
     .valid('PENDING_REVIEW', 'IN_KITCHEN', 'READY_FOR_DISPATCH', 'EN_ROUTE', 'DELIVERED', 'CANCELLED')
     .required(),
+  payment_received: Joi.boolean().optional(),
+  payment_reference: Joi.string().allow(null, '').optional(),
+  payment_type: Joi.string().valid('EFECTIVO', 'DIGITAL').optional(),
 }).required();
 
 // Para endpoint POST/PATCH /orders/{id}/cancel
