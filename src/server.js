@@ -23,6 +23,17 @@ app.use(express.json());
 // Decode/verify JWT on every request (if Authorization header is present)
 app.use(decodeJwtAlways);
 
+// Startup debug: log presence (not values) of critical env vars to help platform debugging.
+console.log('Startup env presence:', JSON.stringify({
+  PORT: !!process.env.PORT,
+  NODE_ENV: !!process.env.NODE_ENV,
+  DB_HOST: !!process.env.DB_HOST,
+  DB_NAME: !!process.env.DB_NAME,
+  DB_USER: !!process.env.DB_USER,
+  SECRET_KEY: !!process.env.SECRET_KEY,
+  KITCHEN_BASE_URL: !!process.env.KITCHEN_BASE_URL,
+}));
+
 // Create audit log entry for every non-GET action under /api/dp/v1
 app.use(auditNonGetActions);
 
