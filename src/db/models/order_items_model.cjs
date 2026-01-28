@@ -39,6 +39,10 @@ const OrderItemsSchema = {
     allowNull: true,
     type: DataTypes.TEXT,
   },
+  excluded_recipe_ids: {
+    allowNull: true,
+    type: DataTypes.ARRAY(DataTypes.UUID),
+  },
 };
 
 class OrderItems extends Model {
