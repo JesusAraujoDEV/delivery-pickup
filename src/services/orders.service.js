@@ -77,6 +77,7 @@ async function createOrder(payload, options = {}) {
           quantity: it.quantity,
           unit_price: 0,
           notes: it.notes,
+          excluded_recipe_ids: Array.isArray(it.excludedRecipeIds) && it.excludedRecipeIds.length ? it.excludedRecipeIds : null,
         })),
         shipping_cost: 0,
         _kitchenOrder: {
@@ -187,6 +188,7 @@ async function createOrder(payload, options = {}) {
     unit_price: it.unit_price,
     subtotal: (Number(it.unit_price) * Number(it.quantity)).toFixed(2),
     notes: it.notes == null ? null : (typeof it.notes === 'string' ? it.notes : JSON.stringify(it.notes)),
+    excluded_recipe_ids: Array.isArray(it.excluded_recipe_ids) && it.excluded_recipe_ids.length ? it.excluded_recipe_ids : null,
   }));
   await OrderItems.bulkCreate(itemsToCreate);
 
@@ -335,13 +337,19 @@ async function setOrderStatus(order_id, status_to, options = {}) {
           : 'DINE_IN',
       displayLabel: order.readable_id,
       customerName: order.customer_name,
-      items: resolved.map(({ it, productId }) => ({
-        productId,
-        quantity: it.quantity,
-        // Cocina valida `notes` como string (no acepta null).
-        // Si la nota fue enviada como objeto/array la convertimos a JSON string.
-        notes: it.notes == null ? '' : (typeof it.notes === 'string' ? it.notes : JSON.stringify(it.notes)),
-      })),
+      items: resolved.map(({ it, productId }) => {
+        const item = {
+          productId,
+          quantity: it.quantity,
+          // Cocina valida `notes` como string (no acepta null).
+          // Si la nota fue enviada como objeto/array la convertimos a JSON string.
+          notes: it.notes == null ? '' : (typeof it.notes === 'string' ? it.notes : JSON.stringify(it.notes)),
+        };
+        if (Array.isArray(it.excluded_recipe_ids) && it.excluded_recipe_ids.length > 0) {
+          item.excludedRecipeIds = it.excluded_recipe_ids;
+        }
+        return item;
+      }),
     };
 
       await createKitchenOrder(kitchenPayload);

@@ -366,6 +366,13 @@ components:
           type: string
           nullable: true
           description: "Nota para cocina (ej: 'Sin mayonesa')"
+        excluded_recipe_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          nullable: true
+          description: "IDs de recetas/ingredientes removidos (UUID array)"
 
     Customer:
       type: object
@@ -455,6 +462,13 @@ components:
               notes:
                 type: string
                 nullable: true
+              excludedRecipeIds:
+                type: array
+                items:
+                  type: string
+                  format: uuid
+                nullable: true
+                description: "Array of recipe IDs to exclude for this item (UUIDs)"
       example:
         externalOrderId: a81bc81b-dead-4e5d-abff-90865d1e41c2
         sourceModule: AC_MODULE
