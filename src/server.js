@@ -1,7 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import routes from './routes/index.js';
-import { initSequelize } from './config/sequelize.js';
+import { initSequelize, sequelize } from './config/sequelize.js';
 import { mountSwagger } from './swagger/swagger.js';
 import cors from 'cors';
 import env from './config/config.js';
@@ -84,9 +84,37 @@ app.use('/api/dp/v1', routes);
 const PORT = process.env.PORT || 3000;
 
 async function start() {
-  await initSequelize();
-  app.listen(PORT, () => {
+  console.log('Starting Sequelize initialization...');
+  try {
+    await initSequelize();
+    console.log('Sequelize initialized successfully');
+  } catch (e) {
+    console.error('Sequelize initialization failed', e && e.message ? e.message : e);
+    throw e;
+  }
+
+  const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    console.log('Service ready');
+  });
+
+  // Graceful shutdown
+  process.on('SIGTERM', async () => {
+    console.log('Received SIGTERM, closing server...');
+    try {
+      await new Promise((resolve, reject) => server.close((err) => (err ? reject(err) : resolve())));
+      if (sequelize) await sequelize.close();
+      console.log('Shutdown complete');
+      process.exit(0);
+    } catch (err) {
+      console.error('Error during shutdown', err);
+      process.exit(1);
+    }
+  });
+
+  process.on('SIGINT', async () => {
+    console.log('Received SIGINT, exiting...');
+    process.kill(process.pid, 'SIGTERM');
   });
 }
 
