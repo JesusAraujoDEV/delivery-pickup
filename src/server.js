@@ -13,6 +13,11 @@ import requestOriginLogger from './middlewares/request-origin.middleware.js';
 dotenv.config();
 
 const app = express();
+
+app.use("/" , (req, res, next) => {
+  res.message = "Welcome to the API";
+  next();
+});
 app.use(express.json());
 
 // Decode/verify JWT on every request (if Authorization header is present)
