@@ -1,11 +1,25 @@
 export function requestOriginLogger(req, res, next) {
   try {
-    const origin = req.get('Origin') || req.get('Referer') || req.get('origin') || 'unknown';
+    // 1. Buscamos el origen web (Frontend)
+    const origin = req.get('Origin') || req.get('Referer') || 'unknown';
+    
+    // 2. Buscamos la IP REAL (Incluso detrás de proxies como Dokploy/Nginx)
+    // 'x-forwarded-for' suele contener la IP real del cliente antes de pasar por el proxy
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
+
+    // 3. Buscamos quién es (Navegador, Bot, Postman, Curl)
+    const userAgent = req.get('User-Agent') || 'Ghost';
+
     const path = (req.originalUrl || req.url || '').replace(/^\/+/, '');
-    console.log(`Ejecutando endpoint ${req.method} ${path} desde ${origin}`);
+
+    // Log enriquecido
+    console.log(`📡 [${req.method}] /${path}`);
+    console.log(`   ↳ Desde: ${origin}`);
+    console.log(`   ↳ IP: ${ip} | Agente: ${userAgent}`);
+    console.log('------------------------------------------------');
+
   } catch (e) {
-    // Non-fatal — never break request flow for logging errors
-    console.error('requestOriginLogger error', e?.message || e);
+    console.error('Logger error', e?.message || e);
   }
   next();
 }
