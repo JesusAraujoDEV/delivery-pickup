@@ -1,3 +1,5 @@
+import util from 'util';
+
 const KITCHEN_BASE_URL = process.env.KITCHEN_BASE_URL || 'https://charlotte-cocina.onrender.com/api/kitchen';
 
 /**
@@ -19,6 +21,12 @@ const KITCHEN_BASE_URL = process.env.KITCHEN_BASE_URL || 'https://charlotte-coci
 export async function createKitchenOrder(payload) {
   // API real de Cocina para inyectar órdenes al KDS
   const url = `${KITCHEN_BASE_URL}/kds/inject`;
+  // Log full payload (including full arrays) for debugging kitchen injection
+  try {
+    console.log('Creating Kitchen order with payload:\n', JSON.stringify(payload, null, 2));
+  } catch (e) {
+    console.log('Creating Kitchen order with payload (inspect):\n', util.inspect(payload, { depth: null, maxArrayLength: null }));
+  }
 
   const res = await fetch(url, {
     method: 'POST',
