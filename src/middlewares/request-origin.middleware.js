@@ -1,10 +1,16 @@
 export function requestOriginLogger(req, res, next) {
   try {
+    // 0. FILTRO DE RUIDO: Si es un archivo estático, pasamos sin loguear
+    // Ignoramos: css, js, imágenes, fuentes y sourcemaps
+    if (req.url.match(/\.(css|js|ico|png|jpg|jpeg|woff|woff2|svg|map)$/)) {
+      next();
+      return; // Importante: salir de la función aquí
+    }
+
     // 1. Buscamos el origen web (Frontend)
     const origin = req.get('Origin') || req.get('Referer') || 'unknown';
     
     // 2. Buscamos la IP REAL (Incluso detrás de proxies como Dokploy/Nginx)
-    // 'x-forwarded-for' suele contener la IP real del cliente antes de pasar por el proxy
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
 
     // 3. Buscamos quién es (Navegador, Bot, Postman, Curl)
