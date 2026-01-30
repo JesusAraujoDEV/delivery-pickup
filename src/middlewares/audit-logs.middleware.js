@@ -34,6 +34,9 @@ export function auditNonGetActions(req, res, next) {
 
   res.on('finish', async () => {
     try {
+      // If a downstream controller/service decided to create an atomic business log,
+      // they can set `req.skip_audit = true` to avoid the generic ACTION log.
+      if (req.skip_audit) return;
       const { Logs } = getModels();
       if (!Logs) return;
 

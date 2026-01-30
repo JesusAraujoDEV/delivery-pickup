@@ -7,6 +7,8 @@ async function createOrder(req, res, next) {
     const payload = req.body;
     const pathname = String(req.originalUrl || '').split('?')[0];
     const resource = pathname.replace(/^\/api\/dp\/v1\/?/, '').split('/').filter(Boolean)[0] || 'root';
+    // Avoid middleware generic ACTION log — service will create the atomic transition log.
+    req.skip_audit = true;
     const order = await ordersService.createOrder(payload, {
       manager_display: req.auth_display || null,
       http_method: String(req.method || '').toUpperCase(),
@@ -100,6 +102,7 @@ async function assignOrder(req, res, next) {
     const { order_id } = req.params;
     const pathname = String(req.originalUrl || '').split('?')[0];
     const resource = pathname.replace(/^\/api\/dp\/v1\/?/, '').split('/').filter(Boolean)[0] || 'root';
+    req.skip_audit = true;
     const data = await ordersService.assignOrder(order_id, req.body, {
       manager_display: req.auth_display || null,
       http_method: String(req.method || '').toUpperCase(),
@@ -121,6 +124,7 @@ async function setOrderStatus(req, res, next) {
     const payload = req.body;
     const pathname = String(req.originalUrl || '').split('?')[0];
     const resource = pathname.replace(/^\/api\/dp\/v1\/?/, '').split('/').filter(Boolean)[0] || 'root';
+    req.skip_audit = true;
     const data = await ordersService.setOrderStatus(order_id, payload, {
       manager_display: req.auth_display || null,
       http_method: String(req.method || '').toUpperCase(),
@@ -147,6 +151,7 @@ async function cancelOrder(req, res, next) {
     const { reason_cancelled } = req.body;
     const pathname = String(req.originalUrl || '').split('?')[0];
     const resource = pathname.replace(/^\/api\/dp\/v1\/?/, '').split('/').filter(Boolean)[0] || 'root';
+    req.skip_audit = true;
     const data = await ordersService.cancelOrder(id, reason_cancelled, {
       manager_display: req.auth_display || null,
       http_method: String(req.method || '').toUpperCase(),
