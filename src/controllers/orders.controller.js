@@ -5,7 +5,14 @@ async function createOrder(req, res, next) {
     // La validación de payload se hace en la ruta con `validateOneOf([createOrderSchema, kitchenLikeCreateOrderSchema])`
     // para evitar duplicidad y drift entre esquemas.
     const payload = req.body;
-    const order = await ordersService.createOrder(payload, { manager_display: req.auth_display || null });
+    const pathname = String(req.originalUrl || '').split('?')[0];
+    const resource = pathname.replace(/^\/api\/dp\/v1\/?/, '').split('/').filter(Boolean)[0] || 'root';
+    const order = await ordersService.createOrder(payload, {
+      manager_display: req.auth_display || null,
+      http_method: String(req.method || '').toUpperCase(),
+      path: pathname,
+      resource,
+    });
     res.status(201).json(order);
   } catch (err) {
     if (err?.statusCode === 400) return res.status(400).json({ message: err.message, details: err.details });
@@ -91,7 +98,14 @@ async function patchOrder(req, res, next) {
 async function assignOrder(req, res, next) {
   try {
     const { order_id } = req.params;
-    const data = await ordersService.assignOrder(order_id, req.body, { manager_display: req.auth_display || null });
+    const pathname = String(req.originalUrl || '').split('?')[0];
+    const resource = pathname.replace(/^\/api\/dp\/v1\/?/, '').split('/').filter(Boolean)[0] || 'root';
+    const data = await ordersService.assignOrder(order_id, req.body, {
+      manager_display: req.auth_display || null,
+      http_method: String(req.method || '').toUpperCase(),
+      path: pathname,
+      resource,
+    });
     if (!data) return res.status(404).json({ message: 'Order not found' });
     res.json(data);
   } catch (err) {
@@ -105,7 +119,14 @@ async function setOrderStatus(req, res, next) {
     const { order_id } = req.params;
     // Accept full payload (e.g. { status: 'DELIVERED', payment_received: true })
     const payload = req.body;
-    const data = await ordersService.setOrderStatus(order_id, payload, { manager_display: req.auth_display || null });
+    const pathname = String(req.originalUrl || '').split('?')[0];
+    const resource = pathname.replace(/^\/api\/dp\/v1\/?/, '').split('/').filter(Boolean)[0] || 'root';
+    const data = await ordersService.setOrderStatus(order_id, payload, {
+      manager_display: req.auth_display || null,
+      http_method: String(req.method || '').toUpperCase(),
+      path: pathname,
+      resource,
+    });
     if (!data) return res.status(404).json({ message: 'Order not found' });
     res.json(data);
   } catch (err) {
@@ -124,7 +145,14 @@ async function cancelOrder(req, res, next) {
   try {
     const { id } = req.params;
     const { reason_cancelled } = req.body;
-    const data = await ordersService.cancelOrder(id, reason_cancelled, { manager_display: req.auth_display || null });
+    const pathname = String(req.originalUrl || '').split('?')[0];
+    const resource = pathname.replace(/^\/api\/dp\/v1\/?/, '').split('/').filter(Boolean)[0] || 'root';
+    const data = await ordersService.cancelOrder(id, reason_cancelled, {
+      manager_display: req.auth_display || null,
+      http_method: String(req.method || '').toUpperCase(),
+      path: pathname,
+      resource,
+    });
     if (!data) return res.status(404).json({ message: 'Order not found' });
     res.json(data);
   } catch (err) {

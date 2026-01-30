@@ -52,7 +52,7 @@ function buildUtcDayRange(dateStr) {
 async function createOrder(payload, options = {}) {
   const { Orders, OrderItems, Logs, Zones } = getModels();
 
-  const { manager_display } = options || {};
+  const { manager_display, http_method, path, resource } = options || {};
 
   // Support two input shapes:
   // 1) DP shape: { service_type, zone_id, customer:{...}, items:[{product_id,product_name,quantity,unit_price}], shipping_cost? }
@@ -204,6 +204,9 @@ async function createOrder(payload, options = {}) {
     log_id: randomUUID(),
     order_id: order.order_id,
     manager_display: manager_display || null,
+    http_method: http_method || null,
+    path: path || null,
+    resource: resource || null,
     status_from: null,
     status_to: 'PENDING_REVIEW',
   });
@@ -217,7 +220,11 @@ async function webhookKitchenReady(readable_id) {
   if (!order) return null;
   const prev = order.current_status;
   await order.update({ current_status: 'READY_FOR_DISPATCH', timestamp_ready: new Date() });
-  await Logs.create({ log_id: randomUUID(), order_id: order.order_id, status_from: prev, status_to: 'READY_FOR_DISPATCH' });
+  try {
+    await Logs.create({ log_id: randomUUID(), order_id: order.order_id, status_from: prev, status_to: 'READY_FOR_DISPATCH' });
+  } catch (e) {
+    // ignore audit failures for webhook path
+  }
   console.log(`[SIM] Notify customer for ${readable_id}: READY_FOR_DISPATCH`);
   return { readable_id: order.readable_id, status: 'READY_FOR_DISPATCH' };
 }
@@ -228,9 +235,7 @@ async function webhookKitchenReady(readable_id) {
  */
 async function setOrderStatus(order_id, status_to, options = {}) {
   const { Orders, OrderItems, Logs } = getModels();
-
-  const { reason_cancelled } = options || {};
-  const { manager_display } = options || {};
+  const { reason_cancelled, manager_display, http_method, path, resource } = options || {};
 
   // Backwards-compatible: allow caller to pass a payload object as `status_to`,
   // e.g. { status: 'DELIVERED', payment_received: true, payment_reference, payment_type }
@@ -382,13 +387,20 @@ async function setOrderStatus(order_id, status_to, options = {}) {
     if (typeof payment_type_payload !== 'undefined') updatePayload.payment_type = payment_type_payload;
 
     await order.update(updatePayload, { transaction });
-    await createLogSafe(Logs, {
-      log_id: randomUUID(),
-      order_id: order.order_id,
-      manager_display: manager_display || null,
-      status_from,
-      status_to,
-    }, { transaction });
+    await createLogSafe(
+      Logs,
+      {
+        log_id: randomUUID(),
+        order_id: order.order_id,
+        manager_display: manager_display || null,
+        http_method: http_method || null,
+        path: path || null,
+        resource: resource || null,
+        status_from,
+        status_to,
+      },
+      { transaction }
+    );
 
     return { order_id: order.order_id, readable_id: order.readable_id, status: status_to };
   });
@@ -558,9 +570,7 @@ async function assignOrder(order_id, payload, options = {}) {
   const { Orders, Logs } = getModels();
   const order = await Orders.findByPk(order_id);
   if (!order) return null;
-
-  const { manager_display } = options || {};
-
+  const { manager_display, http_method, path, resource } = options || {};
   const prev = order.current_status;
 
   // No cambiamos estado por defecto (no estaba definido un status de "ASSIGNED").
@@ -570,6 +580,9 @@ async function assignOrder(order_id, payload, options = {}) {
     log_id: randomUUID(),
     order_id: order.order_id,
     manager_display: manager_display || null,
+    http_method: http_method || null,
+    path: path || null,
+    resource: resource || null,
     status_from: prev,
     status_to: prev,
     cancellation_reason: payload.note || null,
