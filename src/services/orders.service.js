@@ -196,6 +196,7 @@ async function createOrder(payload, options = {}) {
     subtotal: (Number(it.unit_price) * Number(it.quantity)).toFixed(2),
     notes: it.notes == null ? null : (typeof it.notes === 'string' ? it.notes : JSON.stringify(it.notes)),
     excluded_recipe_ids: Array.isArray(it.excluded_recipe_ids) && it.excluded_recipe_ids.length ? it.excluded_recipe_ids : null,
+    excluded_recipe_names: Array.isArray(it.excluded_recipe_names) && it.excluded_recipe_names.length ? it.excluded_recipe_names : null,
   }));
   await OrderItems.bulkCreate(itemsToCreate);
 

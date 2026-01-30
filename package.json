@@ -8,9 +8,9 @@
     "start": "node src/server.js",
     "lint": "echo \"No linter configured\"",
     "db:test": "node src/scripts/test-aiven.js",
-    "migrations:run": "sequelize-cli db:migrate --config src/db/config.cjs --migrations-path src/db/migrations",
-    "migrations:revert": "sequelize-cli db:migrate:undo --config src/db/config.cjs --migrations-path src/db/migrations",
-    "migrations:revert:all": "sequelize-cli db:migrate:undo:all --config src/db/config.cjs --migrations-path src/db/migrations",
+    "migrations:run": "node -e \"const {execSync}=require('child_process'); const url=process.env.DB_URL; const base='npx sequelize-cli'; const cmd = url ? `${base} db:migrate --migrations-path src/db/migrations --url \"${url}\"` : `${base} db:migrate --config src/db/config.cjs --migrations-path src/db/migrations`; console.log('> Running migrations:'); execSync(cmd, { stdio: 'inherit' });\"",
+    "migrations:revert": "node -e \"const {execSync}=require('child_process'); const url=process.env.DB_URL; const base='npx sequelize-cli'; const cmd = url ? `${base} db:migrate:undo --migrations-path src/db/migrations --url \"${url}\"` : `${base} db:migrate:undo --config src/db/config.cjs --migrations-path src/db/migrations`; console.log('> Reverting last migration:'); execSync(cmd, { stdio: 'inherit' });\"",
+    "migrations:revert:all": "node -e \"const {execSync}=require('child_process'); const url=process.env.DB_URL; const base='npx sequelize-cli'; const cmd = url ? `${base} db:migrate:undo:all --migrations-path src/db/migrations --url \"${url}\"` : `${base} db:migrate:undo:all --config src/db/config.cjs --migrations-path src/db/migrations`; console.log('> Reverting all migrations:'); execSync(cmd, { stdio: 'inherit' });\"",
     "migrations:generate": "sequelize-cli migration:generate --name",
     "test:integration": "node --test"
   },
