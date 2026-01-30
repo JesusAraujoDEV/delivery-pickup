@@ -72,9 +72,45 @@ async function search(req, res, next) {
   }
 }
 
+// GET /api/dp/v1/logs/orders
+async function listOrders(req, res, next) {
+  try {
+    const { limit, offset } = req.query || {};
+    const data = await logsService.listOrders({ limit, offset });
+    res.json(withManagerDisplay(req, data));
+  } catch (err) {
+    next(err);
+  }
+}
+
+// GET /api/dp/v1/logs/zones
+async function listZones(req, res, next) {
+  try {
+    const { limit, offset } = req.query || {};
+    const data = await logsService.listZones({ limit, offset });
+    res.json(withManagerDisplay(req, data));
+  } catch (err) {
+    next(err);
+  }
+}
+
+// GET /api/dp/v1/logs/thresholds
+async function listThresholds(req, res, next) {
+  try {
+    const { limit, offset } = req.query || {};
+    const data = await logsService.listThresholds({ limit, offset });
+    res.json(withManagerDisplay(req, data));
+  } catch (err) {
+    next(err);
+  }
+}
+
 export default {
   list,
   get,
   listByOrder,
   search,
+  listOrders,
+  listZones,
+  listThresholds,
 };

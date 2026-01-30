@@ -7,7 +7,7 @@ import path from 'path';
 
 function resolveCaFromEnv() {
   // Support both DB_SSL_CA and POSTGRES_CA_CERT for inline CA
-  let ca = process.env.DB_SSL_CA || process.env.POSTGRES_CA_CERT || null;
+  // let ca = process.env.DB_SSL_CA || process.env.POSTGRES_CA_CERT || null;
   const caPathEnv = process.env.DB_SSL_CA_PATH;
   const defaultPath = path.join(process.cwd(), 'certs', 'aiven-ca.pem');
   const candidatePath = caPathEnv ? path.resolve(caPathEnv) : defaultPath;

@@ -74,9 +74,38 @@ async function search({ status, from, to, limit = 50, offset = 0 } = {}) {
   return rows;
 }
 
+async function listByType(type, { limit = 50, offset = 0 } = {}) {
+  const { Logs, Orders } = getModels();
+  const rows = await Logs.findAll({
+    where: { logs_type: type },
+    include: [
+      { model: Orders, as: 'order', required: false },
+    ],
+    order: [['timestamp_transition', 'DESC']],
+    limit,
+    offset,
+  });
+  return rows;
+}
+
+async function listOrders({ limit = 50, offset = 0 } = {}) {
+  return listByType('orders', { limit, offset });
+}
+
+async function listZones({ limit = 50, offset = 0 } = {}) {
+  return listByType('zones', { limit, offset });
+}
+
+async function listThresholds({ limit = 50, offset = 0 } = {}) {
+  return listByType('thresholds', { limit, offset });
+}
+
 export default {
   list,
   getById,
   listByOrder,
   search,
+  listOrders,
+  listZones,
+  listThresholds,
 };

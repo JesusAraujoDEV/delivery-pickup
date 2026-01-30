@@ -62,8 +62,12 @@ const base = {
   port: Number(DB_PORT),
 };
 
+const maskedUrl = String(base.url || '').replace(/:[^:]+@/, ':*****@');
+console.log('INFO: Sequelize CLI will use DB URL:', maskedUrl);
+
 module.exports = {
   dialect: 'postgres',
+  url: base.url,
   development: {
     ...base,
     ...(sslConfigCli && { dialectOptions: { ssl: sslConfigCli } }),

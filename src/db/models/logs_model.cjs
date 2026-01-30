@@ -54,6 +54,10 @@ const LogsSchema = {
     allowNull: true,
     type: DataTypes.STRING(50),
   },
+  logs_type: {
+    allowNull: true,
+    type: DataTypes.ENUM('orders', 'zones', 'thresholds'),
+  },
 };
 
 class Logs extends Model {

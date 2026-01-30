@@ -18,8 +18,8 @@ const {
 
 // SSL configuration, mirroring Mediart backend approach
 const DB_SSL = process.env.DB_SSL === '1' || process.env.DB_SSL === 'true';
-let DB_SSL_CA = process.env.DB_SSL_CA || process.env.POSTGRES_CA_CERT; // optional: CA content from env (supports alias)
-let DB_SSL_CA_PATH = process.env.DB_SSL_CA_PATH; // optional: path to CA file
+// let DB_SSL_CA = process.env.DB_SSL_CA || process.env.POSTGRES_CA_CERT; // optional: CA content from env (supports alias)
+// let DB_SSL_CA_PATH = process.env.DB_SSL_CA_PATH; // optional: path to CA file
 
 // If in production and no explicit CA provided, try default project cert path (like Mediart's server/ca.crt)
 if (NODE_ENV === 'production' && !DB_SSL_CA && !DB_SSL_CA_PATH) {
