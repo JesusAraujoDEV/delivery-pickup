@@ -18,8 +18,8 @@ const {
 
 // SSL configuration, mirroring Mediart backend approach
 const DB_SSL = process.env.DB_SSL === '1' || process.env.DB_SSL === 'true';
-// let DB_SSL_CA = process.env.DB_SSL_CA || process.env.POSTGRES_CA_CERT; // optional: CA content from env (supports alias)
-// let DB_SSL_CA_PATH = process.env.DB_SSL_CA_PATH; // optional: path to CA file
+let DB_SSL_CA = process.env.DB_SSL_CA || process.env.POSTGRES_CA_CERT; // optional: CA content from env (supports alias)
+let DB_SSL_CA_PATH = process.env.DB_SSL_CA_PATH; // optional: path to CA file
 
 // If in production and no explicit CA provided, try default project cert path (like Mediart's server/ca.crt)
 if (NODE_ENV === 'production') {
@@ -30,17 +30,17 @@ if (NODE_ENV === 'production') {
 }
 
 // Resolve CA from path if present
-// if (!DB_SSL_CA && DB_SSL_CA_PATH) {
-//   try {
-//     const resolvedPath = path.isAbsolute(DB_SSL_CA_PATH)
-//       ? DB_SSL_CA_PATH
-//       : path.resolve(DB_SSL_CA_PATH);
-//     DB_SSL_CA = fs.readFileSync(resolvedPath, { encoding: 'utf8' });
-//     console.log('INFO: DB SSL CA loaded from file:', resolvedPath);
-//   } catch (e) {
-//     console.error('Failed to read DB SSL CA file:', DB_SSL_CA_PATH, e.message);
-//   }
-// }
+if (!DB_SSL_CA && DB_SSL_CA_PATH) {
+  try {
+    const resolvedPath = path.isAbsolute(DB_SSL_CA_PATH)
+      ? DB_SSL_CA_PATH
+      : path.resolve(DB_SSL_CA_PATH);
+    DB_SSL_CA = fs.readFileSync(resolvedPath, { encoding: 'utf8' });
+    console.log('INFO: DB SSL CA loaded from file:', resolvedPath);
+  } catch (e) {
+    console.error('Failed to read DB SSL CA file:', DB_SSL_CA_PATH, e.message);
+  }
+}
 
 // Build Sequelize options similar to Mediart
 const options = {
