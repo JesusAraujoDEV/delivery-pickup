@@ -20,12 +20,7 @@ router.get('/logs/search', validateQuery(logsSearchQuerySchema), controller.sear
 // Historia de una orden
 router.get('/logs/by-order/:order_id', validateParams(orderIdParamSchema), validateQuery(logsSearchQuerySchema), controller.listByOrder);
 
-// Detalle
+// Detalle de un log específico (dynamic route comes after specific routes)
 router.get('/logs/:log_id', validateParams(logIdParamSchema), controller.get);
-
-// Filtered logs by type
-router.get('/logs/orders', validateQuery(logsSearchQuerySchema), controller.listOrders);
-router.get('/logs/zones', validateQuery(logsSearchQuerySchema), controller.listZones);
-router.get('/logs/thresholds', validateQuery(logsSearchQuerySchema), controller.listThresholds);
 
 export default router;

@@ -51,6 +51,7 @@ export function auditNonGetActions(req, res, next) {
         http_method: String(req.method || '').toUpperCase(),
         path: pathname,
         resource,
+        logs_type: resource === 'orders' || resource === 'zones' || resource === 'thresholds' ? resource : null,
         status_from: null,
         status_to: 'ACTION',
         cancellation_reason: null,

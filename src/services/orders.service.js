@@ -207,6 +207,7 @@ async function createOrder(payload, options = {}) {
     http_method: http_method || null,
     path: path || null,
     resource: resource || null,
+    logs_type: 'orders',
     status_from: null,
     status_to: 'PENDING_REVIEW',
   });
@@ -221,7 +222,7 @@ async function webhookKitchenReady(readable_id) {
   const prev = order.current_status;
   await order.update({ current_status: 'READY_FOR_DISPATCH', timestamp_ready: new Date() });
   try {
-    await Logs.create({ log_id: randomUUID(), order_id: order.order_id, status_from: prev, status_to: 'READY_FOR_DISPATCH' });
+    await Logs.create({ log_id: randomUUID(), order_id: order.order_id, logs_type: 'orders', status_from: prev, status_to: 'READY_FOR_DISPATCH' });
   } catch (e) {
     // ignore audit failures for webhook path
   }
@@ -396,6 +397,7 @@ async function setOrderStatus(order_id, status_to, options = {}) {
         http_method: http_method || null,
         path: path || null,
         resource: resource || null,
+        logs_type: 'orders',
         status_from,
         status_to,
       },
@@ -544,7 +546,7 @@ async function getOrderDetailByReadableId(readable_id) {
         return copy;
       });
     }
-  } catch (_) {}
+  } catch (_) { }
 
   return order;
 }
@@ -583,6 +585,7 @@ async function assignOrder(order_id, payload, options = {}) {
     http_method: http_method || null,
     path: path || null,
     resource: resource || null,
+    logs_type: 'orders',
     status_from: prev,
     status_to: prev,
     cancellation_reason: payload.note || null,
