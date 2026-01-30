@@ -5,11 +5,30 @@ paths:
   /api/dp/v1/logs:
     get:
       tags: [Logs]
-      summary: Ver historial general
+      summary: Ver historial general (con filtros opcionales)
+      description: |
+        Endpoint unificado para obtener logs. Soporta filtrado por tipo de recurso (resource),
+        estado, y rango de fechas. Sin filtros devuelve todos los logs (Live Feed).
+        
+        **Ejemplos de uso:**
+        - `GET /api/dp/v1/logs` - Todos los logs
+        - `GET /api/dp/v1/logs?resource=orders` - Solo logs de orders
+        - `GET /api/dp/v1/logs?resource=zones` - Solo logs de zones
+        - `GET /api/dp/v1/logs?resource=thresholds` - Solo logs de thresholds
+        - `GET /api/dp/v1/logs?resource=orders&status=DELIVERED` - Combinar filtros
       parameters:
+        - in: query
+          name: resource
+          required: false
+          description: Filtrar por tipo de recurso (orders, zones, thresholds)
+          schema:
+            type: string
+            enum: [orders, zones, thresholds]
+          example: orders
         - in: query
           name: status
           required: false
+          description: Filtrar por estado de transición (status_to)
           schema:
             type: string
             enum: [PENDING_REVIEW, IN_KITCHEN, READY_FOR_DISPATCH, EN_ROUTE, DELIVERED, CANCELLED, ACTION]
@@ -205,6 +224,12 @@ components:
         resource:
           type: string
           nullable: true
+          example: zones
+        logs_type:
+          type: string
+          nullable: true
+          enum: [orders, zones, thresholds]
+          description: Tipo de log (orders, zones, thresholds). Se asigna automáticamente basado en el recurso.
           example: zones
         manager:
           description: |
