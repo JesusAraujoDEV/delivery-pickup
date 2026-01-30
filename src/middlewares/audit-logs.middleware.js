@@ -37,6 +37,14 @@ export function auditNonGetActions(req, res, next) {
       // If a downstream controller/service decided to create an atomic business log,
       // they can set `req.skip_audit = true` to avoid the generic ACTION log.
       if (req.skip_audit) return;
+
+      // Heuristic: skip generic ACTION logs for endpoints that will create an
+      // atomic business transition log (status change / cancel) to avoid duplicates.
+      // Matches: /api/dp/v1/orders/:id/status and /api/dp/v1/orders/:id/cancel
+      try {
+        const lowPath = String(pathname || '').toLowerCase();
+        if (/^\/api\/dp\/v1\/orders\/[^\/]+\/(status|cancel)$/.test(lowPath)) return;
+      } catch (_) {}
       const { Logs } = getModels();
       if (!Logs) return;
 
