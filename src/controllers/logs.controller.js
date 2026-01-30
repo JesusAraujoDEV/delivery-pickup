@@ -29,24 +29,18 @@ function withManagerDisplay(req, data) {
 // GET /api/dp/v1/logs
 async function list(req, res, next) {
   try {
-    const { limit, offset, resource } = req.query || {};
+    const { limit, offset, resource, status, from, to } = req.query || {};
 
-    // If resource filter is provided, use filtered service method
-    if (resource === 'orders') {
-      const data = await logsService.listOrders({ limit, offset });
-      return res.json(withManagerDisplay(req, data));
-    }
-    if (resource === 'zones') {
-      const data = await logsService.listZones({ limit, offset });
-      return res.json(withManagerDisplay(req, data));
-    }
-    if (resource === 'thresholds') {
-      const data = await logsService.listThresholds({ limit, offset });
-      return res.json(withManagerDisplay(req, data));
-    }
+    // Use unified search method that supports ALL filters
+    const data = await logsService.search({
+      resource,
+      status,
+      from,
+      to,
+      limit,
+      offset
+    });
 
-    // No filter: return all logs (Live Feed)
-    const data = await logsService.list({ limit, offset });
     res.json(withManagerDisplay(req, data));
   } catch (err) {
     next(err);

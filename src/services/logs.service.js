@@ -52,12 +52,18 @@ async function listByOrder(order_id, { limit = 200, offset = 0 } = {}) {
   return rows;
 }
 
-async function search({ status, from, to, limit = 50, offset = 0 } = {}) {
+async function search({ resource, status, from, to, limit = 50, offset = 0 } = {}) {
   const { Logs, Orders } = getModels();
 
   const where = {};
+
+  // Filter by resource type (logs_type)
+  if (resource) where.logs_type = resource;
+
+  // Filter by status
   if (status) where.status_to = status;
 
+  // Filter by timestamp range
   const range = buildTimestampRange(from, to);
   if (range) where.timestamp_transition = range;
 
