@@ -373,6 +373,12 @@ components:
             format: uuid
           nullable: true
           description: "IDs de recetas/ingredientes removidos (UUID array)"
+        excluded_recipe_names:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: "Nombres de recetas/ingredientes removidos (string array)"
 
     Customer:
       type: object
