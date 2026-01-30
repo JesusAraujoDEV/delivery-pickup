@@ -166,7 +166,7 @@ async function createOrder(payload, options = {}) {
   // La inyección se hace cuando el admin cambia el status a IN_KITCHEN.
 
   const orderId = randomUUID();
-  const order = await Orders.create({
+  const createObj = {
     order_id: orderId,
     readable_id,
     customer_name: dpPayload.customer.name,
@@ -178,7 +178,14 @@ async function createOrder(payload, options = {}) {
     monto_total: total.toFixed(2),
     monto_costo_envio: derivedShippingCost.toFixed(2),
     zone_id: zoneId,
-  });
+  };
+
+  // Include payment fields only when provided in payload to preserve DB defaults otherwise
+  if (typeof dpPayload.payment_reference !== 'undefined') createObj.payment_reference = dpPayload.payment_reference;
+  if (typeof dpPayload.payment_type !== 'undefined') createObj.payment_type = dpPayload.payment_type;
+  if (typeof dpPayload.payment_received !== 'undefined') createObj.payment_received = Boolean(dpPayload.payment_received);
+
+  const order = await Orders.create(createObj);
 
   const itemsToCreate = dpPayload.items.map((it) => ({
     item_id: randomUUID(),
