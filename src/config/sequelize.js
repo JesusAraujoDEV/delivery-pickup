@@ -22,7 +22,7 @@ const DB_SSL = process.env.DB_SSL === '1' || process.env.DB_SSL === 'true';
 // let DB_SSL_CA_PATH = process.env.DB_SSL_CA_PATH; // optional: path to CA file
 
 // If in production and no explicit CA provided, try default project cert path (like Mediart's server/ca.crt)
-if (NODE_ENV === 'production' && !DB_SSL_CA && !DB_SSL_CA_PATH) {
+if (NODE_ENV === 'production') {
   const defaultCaPath = path.join(process.cwd(), 'certs', 'aiven-ca.pem');
   if (fs.existsSync(defaultCaPath)) {
     DB_SSL_CA_PATH = defaultCaPath;
@@ -65,10 +65,10 @@ if (DB_SSL) {
 export const sequelize = DB_URL
   ? new Sequelize(DB_URL, options)
   : new Sequelize(DB_NAME, DB_USER, DB_PASS, {
-      host: DB_HOST,
-      port: Number(DB_PORT),
-      ...options,
-    });
+    host: DB_HOST,
+    port: Number(DB_PORT),
+    ...options,
+  });
 
 // Setup models (Mediart-style) from CommonJS files
 const require = createRequire(import.meta.url);
