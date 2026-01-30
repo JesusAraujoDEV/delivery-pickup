@@ -30,17 +30,17 @@ if (NODE_ENV === 'production' && !DB_SSL_CA && !DB_SSL_CA_PATH) {
 }
 
 // Resolve CA from path if present
-if (!DB_SSL_CA && DB_SSL_CA_PATH) {
-  try {
-    const resolvedPath = path.isAbsolute(DB_SSL_CA_PATH)
-      ? DB_SSL_CA_PATH
-      : path.resolve(DB_SSL_CA_PATH);
-    DB_SSL_CA = fs.readFileSync(resolvedPath, { encoding: 'utf8' });
-    console.log('INFO: DB SSL CA loaded from file:', resolvedPath);
-  } catch (e) {
-    console.error('Failed to read DB SSL CA file:', DB_SSL_CA_PATH, e.message);
-  }
-}
+// if (!DB_SSL_CA && DB_SSL_CA_PATH) {
+//   try {
+//     const resolvedPath = path.isAbsolute(DB_SSL_CA_PATH)
+//       ? DB_SSL_CA_PATH
+//       : path.resolve(DB_SSL_CA_PATH);
+//     DB_SSL_CA = fs.readFileSync(resolvedPath, { encoding: 'utf8' });
+//     console.log('INFO: DB SSL CA loaded from file:', resolvedPath);
+//   } catch (e) {
+//     console.error('Failed to read DB SSL CA file:', DB_SSL_CA_PATH, e.message);
+//   }
+// }
 
 // Build Sequelize options similar to Mediart
 const options = {

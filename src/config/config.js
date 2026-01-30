@@ -5,17 +5,17 @@ import path from 'path';
 // Centralized app configuration sourced from .env
 // Includes CA certificate handling via DB_SSL_CA (inline) or DB_SSL_CA_PATH (file path)
 
-function resolveCaFromEnv() {
-  // Support both DB_SSL_CA and POSTGRES_CA_CERT for inline CA
-  // let ca = process.env.DB_SSL_CA || process.env.POSTGRES_CA_CERT || null;
-  const caPathEnv = process.env.DB_SSL_CA_PATH;
-  const defaultPath = path.join(process.cwd(), 'certs', 'aiven-ca.pem');
-  const candidatePath = caPathEnv ? path.resolve(caPathEnv) : defaultPath;
-  if (!ca && fs.existsSync(candidatePath)) {
-    ca = fs.readFileSync(candidatePath, 'utf8');
-  }
-  return ca;
-}
+// function resolveCaFromEnv() {
+//   // Support both DB_SSL_CA and POSTGRES_CA_CERT for inline CA
+//   // let ca = process.env.DB_SSL_CA || process.env.POSTGRES_CA_CERT || null;
+//   const caPathEnv = process.env.DB_SSL_CA_PATH;
+//   const defaultPath = path.join(process.cwd(), 'certs', 'aiven-ca.pem');
+//   const candidatePath = caPathEnv ? path.resolve(caPathEnv) : defaultPath;
+//   if (!ca && fs.existsSync(candidatePath)) {
+//     ca = fs.readFileSync(candidatePath, 'utf8');
+//   }
+//   return ca;
+// }
 
 export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
@@ -38,7 +38,7 @@ export const env = {
     user: process.env.DB_USER || 'postgres',
     pass: process.env.DB_PASS || 'postgres',
     ssl: (process.env.DB_SSL === '1' || process.env.DB_SSL === 'true') ? true : false,
-    sslCa: resolveCaFromEnv(),
+    // sslCa: resolveCaFromEnv(),
   },
 };
 
