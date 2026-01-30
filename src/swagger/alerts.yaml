@@ -1,0 +1,53 @@
+tags:
+  - name: Alerts
+
+paths:
+  /api/dp/v1/alerts:
+    get:
+      tags: [Alerts]
+      summary: Lista de alertas actuales basadas en thresholds de tiempo
+      description: |
+        Devuelve las órdenes que actualmente exceden los umbrales de tiempo configurados en `dp_thresholds`.
+        Las alertas incluyen el `metric` que se ha excedido, los minutos transcurridos y el umbral asociado.
+      responses:
+        '200':
+          description: Lista de alertas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alert'
+        '500':
+          description: Error interno
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+components:
+  schemas:
+    Alert:
+      type: object
+      properties:
+        order_id:
+          type: string
+          format: uuid
+        readable_id:
+          type: string
+        customer_name:
+          type: string
+          nullable: true
+        metric:
+          type: string
+        minutes:
+          type: integer
+          description: Minutes elapsed for the metric
+        threshold:
+          type: integer
+          description: Critical value from threshold
+        status:
+          type: string

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import ctrl from '../controllers/orders.controller.js';
+import { checkPendingCapacityOnCreate, checkCapacityOnTransition } from '../middlewares/capacity.middleware.js';
 import { authorize } from '../middlewares/auth.middleware.js';
 import {
 	validate,
@@ -32,11 +33,12 @@ router.get('/status/:status', validateParams(orderStatusParamSchema), validateQu
 router.post(
 	'/',
 	validateOneOf([createOrderSchema]),
+	checkPendingCapacityOnCreate,
 	ctrl.createOrder
 );
 
 // Estado por destino (order_id) - endpoint único
-router.patch('/:order_id/status', validateParams(orderIdParamSchema), validate(setOrderStatusSchema), ctrl.setOrderStatus);
+router.patch('/:order_id/status', validateParams(orderIdParamSchema), validate(setOrderStatusSchema), checkCapacityOnTransition, ctrl.setOrderStatus);
 
 // Acción: cancelar orden (UUID o DL-####)
 router.post('/:id/cancel', validateParams(orderIdParamSchema), validate(cancelOrderSchema), ctrl.cancelOrder);

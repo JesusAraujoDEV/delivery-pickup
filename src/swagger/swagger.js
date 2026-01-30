@@ -37,9 +37,9 @@ export function mountSwagger(app) {
   const basePath = path.join(dir, 'openapi.yaml');
   const baseYaml = fs.readFileSync(basePath, 'utf8');
   const doc = YAML.parse(baseYaml);
-
   // Merge any additional *.yaml files in swagger folder (excluding openapi.yaml)
   const files = fs.readdirSync(dir).filter(f => f.endsWith('.yaml') && f !== 'openapi.yaml');
+  console.log('Swagger: found swagger files to merge:', files);
   for (const f of files) {
     try {
       const content = fs.readFileSync(path.join(dir, f), 'utf8');
@@ -50,6 +50,14 @@ export function mountSwagger(app) {
     } catch (e) {
       console.error('Failed to merge Swagger file:', f, e.message);
     }
+  }
+
+  // Debug: show merged paths keys
+  try {
+    console.log('Swagger: merged paths count=', Object.keys(doc.paths || {}).length);
+    console.log('Swagger: some paths=', Object.keys(doc.paths || {}).slice(0, 20));
+  } catch (e) {
+    console.error('Swagger: error logging merged paths', e.message);
   }
 
   // Override servers from env if provided

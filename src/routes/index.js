@@ -8,6 +8,7 @@ import thresholdsRoutes from './thresholds.routes.js';
 import zonesRoutes from './zones.routes.js';
 import logsRoutes from './logs.routes.js';
 import authRoutes from './auth.routes.js';
+import alertsRoutes from './alerts.routes.js';
 
 const router = Router();
 
@@ -17,6 +18,7 @@ router.use('/dashboard', dashboardRoutes);
 router.use('/webhooks', webhookRoutes);
 router.use('/reports', reportRoutes);
 router.use('/', thresholdsRoutes);
+router.use('/', alertsRoutes);
 router.use('/', logsRoutes);
 router.use('/zones', zonesRoutes);
 router.use('/auth', authRoutes);
